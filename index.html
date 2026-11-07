@@ -411,7 +411,7 @@ function audioInit(){
   // sora, tuuli, yleisö
   const gr=noise(),grF=filt('bandpass',2600,.6),grG=gain(0);gr.connect(grF);grF.connect(grG);grG.connect(master);
   const wi=noise(),wiF=filt('lowpass',420,.5),wiG=gain(0);wi.connect(wiF);wiF.connect(wiG);wiG.connect(master);
-  const cr=noise(),crF=filt('bandpass',1100,.45),crF2=filt('peaking',2400,1),crA=gain(.8),crG=gain(0);crF2.gain.value=6;
+  const cr=noise(),crF=filt('bandpass',650,.8),crF2=filt('lowpass',1500,.5),crA=gain(.8),crG=gain(0);
   cr.connect(crF);crF.connect(crF2);crF2.connect(crA);crA.connect(crG);crG.connect(master);
   [o1,o2,lfo].forEach(o=>o.start());
   const ra=noise(),raF=filt('bandpass',4200,.35),raG=gain(0);ra.connect(raF);raF.connect(raG);raG.connect(master);
@@ -473,18 +473,18 @@ function audioUpdate(dt){
   SND.o1.frequency.setTargetAtTime(f,t,k);SND.o2.frequency.setTargetAtTime(f*BK.snd.o2,t,k);SND.lfo.frequency.setTargetAtTime(f*BK.snd.fire,t,k);
   SND.lp.frequency.setTargetAtTime(Math.max(150,280+BK.snd.cut+thr*2000+rpm*.13),t,k);
   SND.eng.gain.setTargetAtTime(on?(.16+.3*thr)*BK.snd.vol*(shiftT>0?.35:1):0,t,on?.05:.15);
-  SND.exG.gain.setTargetAtTime(.04+.22*thr,t,k);
+  SND.exG.gain.setTargetAtTime(.01+.06*thr,t,k);
   const ground=play&&!B.air;
-  SND.grG.gain.setTargetAtTime(ground?Math.min(.06,v*.004)+B.slip*thr*.35:0,t,.05);
-  SND.wiG.gain.setTargetAtTime((play?Math.min(.18,v*v*.00025):0)+(WXK==='polyinen'?.05:WXK==='sade'?.03:0),t,.2);
-  SND.raG.gain.setTargetAtTime(WXK==='sade'?.07:0,t,.4);
+  SND.grG.gain.setTargetAtTime(ground?B.slip*thr*.16:0,t,.05);
+  SND.wiG.gain.setTargetAtTime((play?Math.min(.05,v*v*.00006):0)+(WXK==='polyinen'?.015:0),t,.2);
+  SND.raG.gain.setTargetAtTime(WXK==='sade'?.025:0,t,.4);
   // yleisö: lähellä olevien katsojien määrä
   SND.nearT-=dt;if(SND.nearT<=0){SND.nearT=.3;let n=0;for(const o of objs)if(o.t==='fan'&&Math.abs(o.x-B.x)<35&&Math.abs(o.y-B.y)<25)n++;SND.near=n;}
   SND.cheer=Math.max(0,SND.cheer-dt*.6);
-  const lvl=state==='menu'?0:Math.min(.22,SND.near*.004+.015)*(1+SND.cheer*1.6);
+  const lvl=state==='menu'?0:Math.min(.12,SND.near*.0025)*(.4+SND.cheer*1.6);
   SND.crG.gain.setTargetAtTime(Math.min(.6,lvl),t,.25);
   SND.crA.gain.setTargetAtTime(.65+Math.random()*.35,t,.04);
-  SND.crF.frequency.setTargetAtTime(1000+SND.cheer*250+Math.random()*120,t,.1);
+  SND.crF.frequency.setTargetAtTime(600+SND.cheer*180+Math.random()*60,t,.1);
 }
 
 /* ================= tila ================= */
