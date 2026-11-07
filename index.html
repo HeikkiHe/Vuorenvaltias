@@ -11,12 +11,12 @@ canvas{display:block;position:fixed;inset:0;width:100%;height:100%;touch-action:
 #zoom{top:calc(10px + env(safe-area-inset-top))}
 #alusta{top:calc(58px + env(safe-area-inset-top))}
 #aani{top:calc(106px + env(safe-area-inset-top))}
-#ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(10,18,14,.5);z-index:10;padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom)}
+#ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(10,18,14,.5);z-index:10;padding:calc(10px + env(safe-area-inset-top)) 16px calc(10px + env(safe-area-inset-bottom));box-sizing:border-box;height:100%}
 #ov.piilo{display:none}
 #katso{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:12px;background:rgba(15,24,19,.8);color:#fff;padding:8px 8px 8px 14px;border-radius:14px;z-index:6;font-size:14px;font-weight:600;max-width:94vw;box-shadow:0 4px 20px rgba(0,0,0,.3)}
 #katso.piilo{display:none}
 #ohita{background:#e8682a;color:#fff;border:none;border-radius:10px;padding:9px 14px;font:inherit;font-weight:700;white-space:nowrap}
-.kortti{touch-action:pan-y;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;max-width:min(720px,94vw);max-height:92vh;overflow:auto;background:rgba(22,32,27,.94);color:#eef3ee;border-radius:18px;padding:18px 22px;box-shadow:0 10px 40px rgba(0,0,0,.4);text-align:center}
+.kortti{display:flex;flex-direction:column;box-sizing:border-box;max-width:min(720px,94vw);max-height:100%;overflow:hidden;background:rgba(22,32,27,.94);color:#eef3ee;border-radius:18px;padding:18px 22px;box-shadow:0 10px 40px rgba(0,0,0,.4);text-align:center}
 .kortti h1{margin:0 0 8px;font-size:25px}
 .kortti p{margin:6px 0;line-height:1.4;font-size:15px;color:#cfdad1}
 .kortti ul{text-align:left;padding-left:18px;margin:10px 0;font-size:14.5px;line-height:1.45;color:#d7e2d9}
@@ -31,7 +31,9 @@ canvas{display:block;position:fixed;inset:0;width:100%;height:100%;touch-action:
 .rata .ka{color:#ffd27a}
 details{text-align:left;font-size:14px;color:#d7e2d9;margin:6px 0}
 summary{cursor:pointer;color:#fff;font-weight:600}
-.napit{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;position:sticky;bottom:-18px;padding:6px 0 12px;margin-bottom:-12px;background:linear-gradient(rgba(22,32,27,0),rgba(22,32,27,.97) 30%)}
+.napit{flex:none;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;padding:4px 0 0;border-top:1px solid rgba(255,255,255,.08)}
+#ovT{flex:none}
+#ovP{flex:1 1 auto;min-height:0;overflow-y:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:0 2px}
 .luokat{grid-template-columns:repeat(3,1fr)}
 .kortti button.main.toinen{background:rgba(255,255,255,.14)}
 .kortti{position:relative}
