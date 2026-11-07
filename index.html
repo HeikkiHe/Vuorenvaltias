@@ -726,7 +726,7 @@ function drawObj(o,p){
     ctx.strokeStyle='#eee';ctx.lineWidth=Math.max(2,s*.25);ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(a[0],a[1]-h);ctx.moveTo(b[0],b[1]);ctx.lineTo(b[0],b[1]-h);ctx.stroke();
     ctx.strokeStyle=o.txt==='gate_finish'?'#e8382a':'#2a6fe8';ctx.lineWidth=Math.max(6,s*1.1);ctx.beginPath();ctx.moveTo(a[0],a[1]-h);ctx.lineTo(b[0],b[1]-h);ctx.stroke();
     ctx.fillStyle='#fff';ctx.font=`800 ${Math.max(10,s*.9)|0}px system-ui`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(tr(o.txt),(a[0]+b[0])/2,(a[1]+b[1])/2-h);ctx.textAlign='left';}
-  else if(o.t==='fan'){const k=o.k*s,near=Math.abs(o.x-B.x)<16&&state!=='menu',wave=SND.cheer>.35||(near&&Math.abs(B.v)>3),ph=simT*7+o.ph,bob=wave?Math.abs(Math.sin(ph))*.14*k:0;
+  else if(o.t==='fan'){const k=o.k*s*1.8,near=Math.abs(o.x-B.x)<16&&state!=='menu',wave=SND.cheer>.35||(near&&Math.abs(B.v)>3),ph=simT*7+o.ph,bob=wave?Math.abs(Math.sin(ph))*.14*k:0;
     ctx.fillStyle='rgba(0,0,0,.16)';ctx.beginPath();ctx.ellipse(x+k*.15,y,k*.55,k*.22,0,0,7);ctx.fill();
     ctx.lineCap='round';ctx.strokeStyle=o.pants;ctx.lineWidth=Math.max(1,k*.17);ctx.beginPath();
     ctx.moveTo(x-k*.1,y-k*.85+bob*.4);ctx.lineTo(x-k*.13,y-k*.03);ctx.moveTo(x+k*.1,y-k*.85+bob*.4);ctx.lineTo(x+k*.14,y-k*.03);ctx.stroke();
