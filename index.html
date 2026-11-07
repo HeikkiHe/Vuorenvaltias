@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Vuorenvaltias</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#8fb7d6;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;overscroll-behavior:none}
+canvas{display:block;position:fixed;inset:0;width:100%;height:100%;touch-action:none}
+.nap{position:fixed;right:calc(10px + env(safe-area-inset-right));width:42px;height:42px;border-radius:12px;border:none;background:rgba(15,25,20,.55);color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;z-index:5}
+#zoom{top:calc(10px + env(safe-area-inset-top))}
+#alusta{top:calc(58px + env(safe-area-inset-top))}
+#aani{top:calc(106px + env(safe-area-inset-top))}
+#ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(10,18,14,.5);z-index:10;padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom)}
+#ov.piilo{display:none}
+#katso{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:12px;background:rgba(15,24,19,.8);color:#fff;padding:8px 8px 8px 14px;border-radius:14px;z-index:6;font-size:14px;font-weight:600;max-width:94vw;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+#katso.piilo{display:none}
+#ohita{background:#e8682a;color:#fff;border:none;border-radius:10px;padding:9px 14px;font:inherit;font-weight:700;white-space:nowrap}
+.kortti{touch-action:pan-y;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;max-width:min(720px,94vw);max-height:92vh;overflow:auto;background:rgba(22,32,27,.94);color:#eef3ee;border-radius:18px;padding:18px 22px;box-shadow:0 10px 40px rgba(0,0,0,.4);text-align:center}
+.kortti h1{margin:0 0 8px;font-size:25px}
+.kortti p{margin:6px 0;line-height:1.4;font-size:15px;color:#cfdad1}
+.kortti ul{text-align:left;padding-left:18px;margin:10px 0;font-size:14.5px;line-height:1.45;color:#d7e2d9}
+.kortti li{margin:4px 0}
+.kortti b{color:#ffd27a}
+.iso{font-size:34px;font-weight:700;color:#fff;margin:4px 0}
+.radat{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:10px 0;text-align:left}
+.rata{background:rgba(255,255,255,.07);border:2px solid transparent;border-radius:12px;padding:9px 10px;color:#eef3ee;font:inherit;cursor:pointer}
+.rata.valittu{border-color:#e8682a;background:rgba(232,104,42,.16)}
+.rata b{display:block;font-size:14.5px;color:#fff;margin-bottom:2px}
+.rata span{display:block;font-size:12px;color:#c3cfc6;line-height:1.35}
+.rata .ka{color:#ffd27a}
+details{text-align:left;font-size:14px;color:#d7e2d9;margin:6px 0}
+summary{cursor:pointer;color:#fff;font-weight:600}
+.napit{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;position:sticky;bottom:-18px;padding:6px 0 12px;margin-bottom:-12px;background:linear-gradient(rgba(22,32,27,0),rgba(22,32,27,.97) 30%)}
+.luokat{grid-template-columns:repeat(3,1fr)}
+.kortti button.main.toinen{background:rgba(255,255,255,.14)}
+.kortti{position:relative}
+.kielet{display:flex;gap:4px;justify-content:center;margin:-2px 0 8px}
+.kieli{background:rgba(255,255,255,.08);color:#c3cfc6;border:1px solid transparent;border-radius:8px;padding:3px 7px;font:inherit;font-size:12px;font-weight:700}
+.kieli.valittu{border-color:#e8682a;color:#fff}
+.saat{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin:5px 0}
+.saa{background:rgba(255,255,255,.07);border:2px solid transparent;border-radius:10px;padding:5px 2px;color:#eef3ee;font:inherit;font-size:20px;line-height:1.1}
+.saa small{display:block;font-size:10.5px;color:#c3cfc6;margin-top:2px;line-height:1.15}
+.saa.valittu{border-color:#e8682a;background:rgba(232,104,42,.16)}
+.pelaajat{display:flex;flex-direction:column;gap:6px;margin:6px 0}
+.pel{display:flex;align-items:center;gap:8px}
+.pnimi{flex:1;min-width:0;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:10px;color:#fff;font:inherit;font-size:16px;padding:8px 10px;user-select:text;-webkit-user-select:text}
+.pois{background:none;border:none;color:#c3cfc6;font-size:18px;padding:4px 8px}
+.pv{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:middle;flex:none}
+.valinnat{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:8px 0;text-align:left}
+.valinnat label{font-size:13px;color:#c3cfc6;display:flex;flex-direction:column;gap:3px}
+.valinnat select{background:#26352c;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:10px;font:inherit;font-size:15px;padding:7px}
+.ennuste{display:flex;justify-content:center;gap:8px;margin:2px 0 6px}
+.ennuste span{font-size:20px;padding:2px 8px;border-radius:10px;background:rgba(255,255,255,.06);opacity:.75}
+.ennuste span.nyt{background:rgba(232,104,42,.25);opacity:1;outline:2px solid #e8682a}
+.ennuste span.ohi{opacity:.35}
+.ennuste small{font-size:11px;margin-left:3px;color:#c3cfc6}
+.tabit{display:flex;gap:6px;justify-content:center;margin:2px 0 8px}
+.tab{background:rgba(255,255,255,.08);color:#dfe8e1;border:2px solid transparent;border-radius:20px;padding:6px 16px;font:inherit;font-size:14px;font-weight:600}
+.tab.valittu{border-color:#e8682a;background:rgba(232,104,42,.18);color:#fff}
+.taulu{width:100%;border-collapse:collapse;font-size:13.5px;text-align:left;margin:4px 0 8px}
+.taulu td{padding:2px 6px;border-bottom:1px solid rgba(255,255,255,.06)}
+.taulu tr.mina td{background:rgba(232,104,42,.28);color:#fff;font-weight:700}
+.taulu tr.raja td{border-bottom:2px solid #ffd27a}
+.oik{text-align:right;white-space:nowrap}.pieni{font-size:12.5px!important;color:#aab8ae!important;margin:6px 0 2px!important}
+.taulu .pieni{color:#7fd39a!important}
+.tikkaat{display:flex;justify-content:center;align-items:center;gap:6px;margin:4px 0 8px;font-weight:700;font-size:15px}
+.tikkaat span{padding:3px 10px;border-radius:10px;background:rgba(255,255,255,.07);color:#9fb0a4}
+.tikkaat span.nyt{background:#e8682a;color:#fff}.tikkaat span.ohi{color:#7fd39a}.tikkaat i{color:#7d8c82;font-style:normal}
+.pikku{background:none;border:1px solid rgba(255,255,255,.25);color:#cfdad1;border-radius:10px;padding:5px 12px;font:inherit;font-size:13px}
+@media (max-height:520px){.kortti{padding:10px 16px}.kortti h1{font-size:20px;margin:0 0 2px}.kortti p{margin:3px 0;font-size:13px!important}
+ .rata{padding:5px 8px}.rata b{font-size:13.5px;margin:0}.rata span{font-size:11.5px;line-height:1.25}.radat{margin:5px 0;gap:6px}
+ .kortti button.main{margin-top:4px;padding:9px 28px;font-size:16px}details{margin:2px 0}}
+.kortti button.toinen{background:rgba(255,255,255,.14)}
+.kortti button.main{margin-top:12px;font-size:18px;font-weight:600;padding:12px 34px;border:none;border-radius:12px;background:#e8682a;color:#fff}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<button class="nap" id="zoom" aria-label="Etäisyys">🔍</button>
+<button class="nap" id="alusta" aria-label="Valikko">☰</button>
+<button class="nap" id="aani" aria-label="Äänet">🔊</button>
+<div id="katso" class="piilo"><span id="katsoT"></span><button id="ohita"></button></div>
+<div id="ov"><div class="kortti"><h1 id="ovT"></h1><div id="ovP"></div><div class="napit"><button id="ovB2" class="main toinen" style="display:none">Vaihda rataa</button><button id="ovB" class="main"></button></div></div></div>
+<script>
+(()=>{
+"use strict";
+/* ================= kielet ================= */
+const STR={
+fi:{title:'Vuorenvaltias',tab_friends:'Kaverikisa',fr_intro:'Ajakaa vuorotellen samalla puhelimella. Jokaisella on kolme yritystä, ja paras ratkaisee.',fr_add:'Lisää pelaaja',fr_player:'Pelaaja {0}',fr_track:'Rata',fr_start:'Aloita kaverikisa',fr_title:'Kaverikisa',fr_next:'Vuorossa: <b>{0}</b> · kierros {1}/3',fr_ride:'Aja: {0}',fr_pass:'Anna puhelin seuraavalle!',fr_results:'Lopputulokset',fr_winner:'🏆 {0} on Vuorenvaltias!',fr_again:'Uusi kisa',fr_hud:'{0} · kierros {1}/3',flag_lead:'Kärki',tab_series:'Kisasarja',tab_practice:'Harjoittelu',
+ series_intro:'<p>Aja kisasarja luokasta toiseen. Jokaisessa luokassa ajetaan neljän kisan sarja eri radoilla. Kisassa on <b>kolme yritystä</b>, ja paras niistä ratkaisee.</p><p>Sijoituksista saa pisteitä (25, 22, 20, 18 …). Sarjan <b>kolme parasta</b> nousevat seuraavaan luokkaan: 125cc → 500cc → Open.</p><p>Sää vaihtelee kesken kisankin: sade ja pöly vievät pitoa, kostea maa pitää parhaiten.</p>',
+ ser_head:'{0}-sarja · kisa {1}/{2}: {3}',attempt_n:'Yritys {0}/3',race_done:'Kisa ajettu',race_status:'Kisan tilanne',champ_table:'Sarjataulukko',
+ restart:'Aloita sarja alusta',restart_sure:'Varmasti? Napauta uudelleen',start_series:'Aloita kisasarja',ride_attempt:'Aja yritys {0}/3',
+ race_results:'Kisan tulokset',series_results:'Sarjan tulokset',ride:'Aja',practice_intro:'Harjoittele vapaasti: valitse rata, luokka ja sää.',
+ trk_stats:'{0} · nousu {1} m · jyrkin {2} %',best_x:'Paras {0}',not_ridden:'Ei vielä ajettu',class_label:'Luokka:',weather_label:'Sää:',
+ wheelbase:'akseliväli {0} m',hp:'hv',new_attempt:'Uusi yritys',change_track:'Vaihda rataa',menu:'Valikko',time_x:'Aika {0}',
+ left_to_top:'Huipulle jäi {0}',new_record:'Uusi ennätys!',attempts_n:'yrityksiä: {0}',you_now:'Olet nyt <b>{0}</b>',
+ won_race:'🏆 Voitit kisan!',podium:'Palkintopallille: {0}',placed:'Sijoituit {0}',next_race:'Seuraava kisa',race_line:'{0} · {1} · kisa {2}/{3}',
+ champion:'🏆 Olet Open-mestari!',champ_pos:'Mestaruussarjan {0} sija',series_over:'Sarja päättyi: {0}',promoted:'Nousit luokkaan {0}!',
+ new_season:'Uusi kausi',start_class:'Aloita {0}-sarja',retry_class:'Aja {0}-sarja uudelleen',final_of:'{0}-sarjan lopputulos',
+ need_title:' – mestaruuteen puuttui {0} pistettä',need_top3:' – kolmen parhaan joukkoon olisi tarvittu {0} pistettä lisää',pts:'p',you:'Sinä',
+ attempt_line:'Yritys {0}/3 · {1} · {2}',watch_best:'Paras tähän asti: {0} · {1}',watch_mine:'Oma paras uusintana · {0}',skip:'Ohita ⏭',your_turn:'Sinun vuorosi!',next_wx:'Seuraavaksi: {0}',wx_line:'{0} {1} · pito {2} %',
+ m_flip:'Keulit ympäri!',m_nose:'Etupyörä edellä alas',m_hard:'Liian kova alastulo',m_side:'Kaaduit kyljellesi',m_rear:'Takapyörä lähti alta',
+ m_out:'Ajoit ulos radalta',m_top:'Huipulla! 🏁',m_back:'Valuit alas',m_stop:'Pysähdyit',m_abort:'Keskeytit yrityksen',
+ hud_att:'Yritys {0}/3 · 3.: {1}',hud_grade:'Jyrkkyys {0} %',g_air:'ILMASSA',g_wheelie:'KEULII!',g_slip:'LIPSUU!',
+ c_thr:'KAASU',c_brake:'↑ / ↓ jarru',c_pos:'ASENTO',c_fwd:'eteen',c_back:'taakse',gate_start:'LÄHTÖ',gate_finish:'MAALI',flag_best:'Paras',flag_3rd:'3. sija',
+ trk_niitty:'Alppiniitty',trk_kaksoismuuri:'Kaksoismuuri',trk_mahdoton:'Mahdoton rinne',trk_seina:'Lyhyt seinä',
+ dsc_niitty:'Leveä niittyrinne. Alhaalla kumpareita, ylempänä kynnyksiä ja lopussa jyrkkä kivikko.',
+ dsc_kaksoismuuri:'Kapea rata. Heti alussa tasanne ja noin neljän metrin muuri, joka pysäyttää monet. Lopussa erittäin jyrkkä loppumuuri.',
+ dsc_mahdoton:'Koko matkan 70–82 % jyrkkyys, hyppyreitä tasanteineen ja lähes pystysuora loppumuuri. Yleisö tungeksii alarinteessä.',
+ dsc_seina:'Vain 180 metriä, mutta nousua noin sata metriä. Jyrkkä heti alusta, kynnyksiä tasaisin välein ja metsää ympärillä.',trk_pitka:'Pitkä vuori',trk_valot:'Valonheitinrinne',trk_hyppyri:'Hyppyrimäki',trk_louhos:'Louhos',dsc_pitka:'Yli 300 metriä ja 76 % jyrkkyys lähes koko matkan. Vauhdinottoa vain muutama metri, kuoppia ja kynnyksiä vuorotellen. Huipulle pääsee vain harva.',dsc_valot:'Iltakisa valonheittimien alla. Kumpareita ja tasaisesti jyrkkenevä rinne kynnyksineen – katso tarkkaan, mihin valo osuu.',dsc_hyppyri:'Lyhyt ja todella jyrkkä rinne pehmeää multaa. Isot porraskynnykset heittävät ilmaan, ja pehmeä pinta vie pitoa.',dsc_louhos:'Kivinen louhosseinämä. Irtokivet ja rouhea pinta vievät pitoa, ja kalliokynnyksiä on koko matkan.',
+ cls_125:'Kevyt kaksitahtinen vakiorungolla. Ketterä ja anteeksiantava, mutta teho loppuu jyrkimmissä nousuissa.',
+ cls_500:'Nelitahtinen yksisylinterinen pidennetyllä takahaarukalla. Tasapainoinen kisapyörä.',
+ cls_open:'Iso moottori, lähes kaksinkertainen takahaarukka ja lavat takarenkaassa. Valtava teho ja pito, mutta raskas käsitellä.',
+ wx_kuiva:'Aurinkoinen',wx_polyinen:'Kuuma ja pölyinen',wx_kostea:'Pilvinen, kostea maa',wx_sade:'Sade',wx_sumu:'Sumu',wx_vaihtuva:'Vaihtuva',
+ help:'<details><summary>Ohjeet</summary><ul><li><b>Vasen peukalo</b> – kaasu: vedä ylös. Alas vetäminen jarruttaa.</li><li><b>Oikea peukalo</b> – kuljettajan asento: kuljettaja on valmiiksi täysin etukenossa. Vedä alas siirtääksesi painoa taakse (puolivälissä neutraali, pohjassa täysin takana), sivuille ohjaa.</li><li>Liian taakse nojatessa tai liialla kaasulla pyörä <b>keulii ympäri</b>. Liian eteen nojatessa <b>takapyörä lipsuu</b>.</li><li>Kynnykset, hyppyrit ja kumpareet heittävät keulaa ylös ja voivat lennättää ilmaan. Ilmassa kaasu nostaa keulaa ja jarru laskee sitä.</li><li>Nopea nykäisy taakse keventää keulaa – sillä pääsee kynnysten yli. Jousitus vaimentaa pienet kuopat, mutta kova isku kynnykseen vie vauhtia ja voi heittää ilmaan.</li><li>Jyrkässä rinteessä täysi kaasu nostaa keulan helposti: annostele kaasua ja nojaa eteen.</li><li>Sää vaikuttaa pitoon: sateessa ja pölyssä takapyörä lipsuu herkemmin, kostealla maalla pito on parhaimmillaan.</li><li>Yritys päättyy, kun pysähdyt, valut alas, kaadut tai ajat nauhojen yli. Tulos on rinnettä pitkin ajettu matka.</li><li>Käännä puhelin vaakatasoon. Jos ääntä ei kuulu, nosta äänenvoimakkuutta ja tarkista 🔊-nappi.</li></ul></details>'},
+en:{title:'Vuorenvaltias',tab_friends:'Friends',fr_intro:'Take turns on the same phone. Everyone gets three attempts, and the best one counts.',fr_add:'Add player',fr_player:'Player {0}',fr_track:'Track',fr_start:'Start the contest',fr_title:'Friends contest',fr_next:'Up next: <b>{0}</b> · round {1}/3',fr_ride:'Ride: {0}',fr_pass:'Pass the phone on!',fr_results:'Final results',fr_winner:'🏆 {0} is the Vuorenvaltias!',fr_again:'New contest',fr_hud:'{0} · round {1}/3',flag_lead:'Leader',tab_series:'Championship',tab_practice:'Practice',
+ series_intro:'<p>Race your way up through the classes. Each class is a series of four races on different tracks. Every race gives you <b>three attempts</b>, and the best one counts.</p><p>Placings earn points (25, 22, 20, 18 …). The <b>top three</b> in the championship move up to the next class: 125cc → 500cc → Open.</p><p>The weather can change even during a race: rain and dust cost grip, damp ground grips best.</p>',
+ ser_head:'{0} championship · race {1}/{2}: {3}',attempt_n:'Attempt {0}/3',race_done:'Race completed',race_status:'Race standings',champ_table:'Championship standings',
+ restart:'Restart championship',restart_sure:'Sure? Tap again',start_series:'Start championship',ride_attempt:'Ride attempt {0}/3',
+ race_results:'Race results',series_results:'Championship results',ride:'Ride',practice_intro:'Practise freely: choose a track, class and weather.',
+ trk_stats:'{0} · climb {1} m · steepest {2} %',best_x:'Best {0}',not_ridden:'Not ridden yet',class_label:'Class:',weather_label:'Weather:',
+ wheelbase:'wheelbase {0} m',hp:'hp',new_attempt:'Try again',change_track:'Change track',menu:'Menu',time_x:'Time {0}',
+ left_to_top:'{0} short of the top',new_record:'New record!',attempts_n:'attempts: {0}',you_now:'You are now <b>{0}</b>',
+ won_race:'🏆 You won the race!',podium:'On the podium: {0}',placed:'You finished {0}',next_race:'Next race',race_line:'{0} · {1} · race {2}/{3}',
+ champion:'🏆 You are the Open champion!',champ_pos:'{0} in the title championship',series_over:'Championship over: {0}',promoted:'Promoted to {0}!',
+ new_season:'New season',start_class:'Start {0} championship',retry_class:'Retry {0} championship',final_of:'{0} championship final standings',
+ need_title:' – {0} points short of the title',need_top3:' – you needed {0} more points for the top three',pts:'pts',you:'You',
+ attempt_line:'Attempt {0}/3 · {1} · {2}',watch_best:'Best so far: {0} · {1}',watch_mine:'Your best, replayed · {0}',skip:'Skip ⏭',your_turn:'Your turn!',next_wx:'Next up: {0}',wx_line:'{0} {1} · grip {2} %',
+ m_flip:'Looped out!',m_nose:'Landed nose first',m_hard:'Landing too hard',m_side:'Fell over sideways',m_rear:'Rear wheel washed out',
+ m_out:'Off the course',m_top:'Top of the hill! 🏁',m_back:'Rolled back down',m_stop:'Stalled',m_abort:'Attempt abandoned',
+ hud_att:'Attempt {0}/3 · 3rd: {1}',hud_grade:'Gradient {0} %',g_air:'AIRBORNE',g_wheelie:'WHEELIE!',g_slip:'SLIPPING!',
+ c_thr:'THROTTLE',c_brake:'↑ / ↓ brake',c_pos:'BODY',c_fwd:'forward',c_back:'back',gate_start:'START',gate_finish:'FINISH',flag_best:'Best',flag_3rd:'3rd place',
+ trk_niitty:'Alpine Meadow',trk_kaksoismuuri:'Double Wall',trk_mahdoton:'Impossible Slope',trk_seina:'Short Wall',
+ dsc_niitty:'A wide meadow slope. Whoops at the bottom, ledges higher up and a steep rock field at the end.',
+ dsc_kaksoismuuri:'A narrow track. Right after the start a flat shelf and a wall about four metres high that stops many riders. A very steep final wall at the end.',
+ dsc_mahdoton:'A 70–82 % gradient all the way, kickers with flat landings and an almost vertical final wall. The crowd packs the lower slope.',
+ dsc_seina:'Only 180 metres, but about a hundred metres of climb. Steep from the start, evenly spaced ledges and forest all around.',trk_pitka:'Long Mountain',trk_valot:'Floodlight Hill',trk_hyppyri:'Step-up Hill',trk_louhos:'The Quarry',dsc_pitka:'Over 300 metres at a 76 % gradient almost all the way. Only a few metres of run-up, holes and ledges in turn. Few ever reach the top.',dsc_valot:'An evening race under floodlights. Whoops and a steadily steepening slope with ledges – watch where the light falls.',dsc_hyppyri:'Short and very steep, soft loam. Big step-ups throw you into the air and the soft surface costs grip.',dsc_louhos:'A rocky quarry face. Loose stones and a rough surface cost grip, with rock steps all the way up.',
+ cls_125:'Light two-stroke on a standard frame. Nimble and forgiving, but it runs out of power on the steepest climbs.',
+ cls_500:'Four-stroke single with an extended swingarm. A well-balanced race bike.',
+ cls_open:'Big engine, a nearly double-length swingarm and paddles on the rear tyre. Huge power and grip, but heavy to handle.',
+ wx_kuiva:'Sunny',wx_polyinen:'Hot and dusty',wx_kostea:'Overcast, damp ground',wx_sade:'Rain',wx_sumu:'Fog',wx_vaihtuva:'Changing',
+ help:'<details><summary>How to play</summary><ul><li><b>Left thumb</b> – throttle: drag up. Dragging down brakes.</li><li><b>Right thumb</b> – rider position: the rider starts fully leaned forward. Drag down to shift weight back (halfway is neutral, all the way is fully back), sideways steers.</li><li>Leaning back too far or too much throttle makes the bike <b>loop out</b>. Leaning too far forward makes the <b>rear wheel slip</b>.</li><li>Ledges, kickers and whoops throw the front up and can launch you into the air. In the air, throttle lifts the front and the brake drops it.</li><li>A quick jerk backwards lightens the front – use it to get over ledges. The suspension soaks up small bumps, but hitting a ledge hard costs speed and can launch you.</li><li>On steep ground full throttle lifts the front easily: feed the throttle and lean forward.</li><li>Weather affects grip: in rain and dust the rear wheel slips more easily, damp ground gives the best grip.</li><li>An attempt ends when you stop, roll back, crash or cross the tapes. Your result is the distance ridden along the slope.</li><li>Turn your phone to landscape. If you hear no sound, turn up the volume and check the 🔊 button.</li></ul></details>'},
+de:{title:'Vuorenvaltias',tab_friends:'Mit Freunden',fr_intro:'Fahrt abwechselnd auf demselben Handy. Jeder hat drei Versuche, der beste zählt.',fr_add:'Spieler hinzufügen',fr_player:'Spieler {0}',fr_track:'Strecke',fr_start:'Wettkampf starten',fr_title:'Freundeswettkampf',fr_next:'Als Nächstes: <b>{0}</b> · Runde {1}/3',fr_ride:'Fahren: {0}',fr_pass:'Gib das Handy weiter!',fr_results:'Endergebnis',fr_winner:'🏆 {0} ist der Vuorenvaltias!',fr_again:'Neuer Wettkampf',fr_hud:'{0} · Runde {1}/3',flag_lead:'Führung',tab_series:'Meisterschaft',tab_practice:'Training',
+ series_intro:'<p>Fahre dich durch die Klassen nach oben. Jede Klasse ist eine Serie aus vier Rennen auf verschiedenen Strecken. Jedes Rennen hat <b>drei Versuche</b>, der beste zählt.</p><p>Platzierungen bringen Punkte (25, 22, 20, 18 …). Die <b>besten drei</b> der Meisterschaft steigen in die nächste Klasse auf: 125cc → 500cc → Open.</p><p>Das Wetter kann auch während eines Rennens umschlagen: Regen und Staub kosten Grip, feuchter Boden greift am besten.</p>',
+ ser_head:'{0}-Meisterschaft · Rennen {1}/{2}: {3}',attempt_n:'Versuch {0}/3',race_done:'Rennen beendet',race_status:'Rennstand',champ_table:'Meisterschaftsstand',
+ restart:'Meisterschaft neu starten',restart_sure:'Sicher? Nochmal tippen',start_series:'Meisterschaft starten',ride_attempt:'Versuch {0}/3 fahren',
+ race_results:'Rennergebnis',series_results:'Meisterschaftsergebnis',ride:'Fahren',practice_intro:'Freies Training: Wähle Strecke, Klasse und Wetter.',
+ trk_stats:'{0} · Anstieg {1} m · max. {2} %',best_x:'Bestwert {0}',not_ridden:'Noch nicht gefahren',class_label:'Klasse:',weather_label:'Wetter:',
+ wheelbase:'Radstand {0} m',hp:'PS',new_attempt:'Neuer Versuch',change_track:'Strecke wechseln',menu:'Menü',time_x:'Zeit {0}',
+ left_to_top:'Bis zum Gipfel fehlten {0}',new_record:'Neuer Rekord!',attempts_n:'Versuche: {0}',you_now:'Du bist jetzt <b>{0}</b>',
+ won_race:'🏆 Rennsieg!',podium:'Auf dem Podium: {0}',placed:'Du wurdest {0}',next_race:'Nächstes Rennen',race_line:'{0} · {1} · Rennen {2}/{3}',
+ champion:'🏆 Du bist Open-Meister!',champ_pos:'Platz {0} in der Meisterklasse',series_over:'Meisterschaft beendet: {0}',promoted:'Aufstieg in die {0}!',
+ new_season:'Neue Saison',start_class:'{0}-Meisterschaft starten',retry_class:'{0}-Meisterschaft wiederholen',final_of:'Endstand der {0}-Meisterschaft',
+ need_title:' – zum Titel fehlten {0} Punkte',need_top3:' – für die Top drei fehlten {0} Punkte',pts:'Pkt.',you:'Du',
+ attempt_line:'Versuch {0}/3 · {1} · {2}',watch_best:'Bisher bester: {0} · {1}',watch_mine:'Dein Bestwert als Wiederholung · {0}',skip:'Überspringen ⏭',your_turn:'Du bist dran!',next_wx:'Als Nächstes: {0}',wx_line:'{0} {1} · Grip {2} %',
+ m_flip:'Überschlag!',m_nose:'Mit dem Vorderrad gelandet',m_hard:'Zu harte Landung',m_side:'Seitlich umgekippt',m_rear:'Hinterrad weggerutscht',
+ m_out:'Von der Strecke abgekommen',m_top:'Ganz oben! 🏁',m_back:'Zurückgerollt',m_stop:'Stehen geblieben',m_abort:'Versuch abgebrochen',
+ hud_att:'Versuch {0}/3 · 3.: {1}',hud_grade:'Steigung {0} %',g_air:'IN DER LUFT',g_wheelie:'WHEELIE!',g_slip:'RUTSCHT!',
+ c_thr:'GAS',c_brake:'↑ / ↓ Bremse',c_pos:'HALTUNG',c_fwd:'vor',c_back:'zurück',gate_start:'START',gate_finish:'ZIEL',flag_best:'Bestwert',flag_3rd:'3. Platz',
+ trk_niitty:'Almwiese',trk_kaksoismuuri:'Doppelmauer',trk_mahdoton:'Unmöglicher Hang',trk_seina:'Kurze Wand',
+ dsc_niitty:'Breiter Wiesenhang. Unten Wellen, weiter oben Stufen und am Ende ein steiles Geröllfeld.',
+ dsc_kaksoismuuri:'Schmale Strecke. Gleich nach dem Start ein Plateau und eine etwa vier Meter hohe Mauer, an der viele scheitern. Am Ende eine sehr steile Schlussmauer.',
+ dsc_mahdoton:'70–82 % Steigung auf ganzer Länge, Sprünge mit Plateaus und eine fast senkrechte Schlussmauer. Die Zuschauer drängen sich unten am Hang.',
+ dsc_seina:'Nur 180 Meter, aber rund hundert Meter Anstieg. Steil ab dem Start, regelmäßige Stufen und ringsum Wald.',trk_pitka:'Langer Berg',trk_valot:'Flutlichthang',trk_hyppyri:'Stufenhügel',trk_louhos:'Steinbruch',dsc_pitka:'Über 300 Meter mit 76 % Steigung fast auf ganzer Länge. Nur wenige Meter Anlauf, abwechselnd Löcher und Stufen. Nur wenige schaffen es nach oben.',dsc_valot:'Abendrennen unter Flutlicht. Wellen und ein stetig steiler werdender Hang mit Stufen – achte darauf, wohin das Licht fällt.',dsc_hyppyri:'Kurz und sehr steil, weicher Lehmboden. Große Stufen werfen dich in die Luft, der weiche Boden kostet Grip.',dsc_louhos:'Felsige Steinbruchwand. Lose Steine und rauer Untergrund kosten Grip, Felsstufen auf ganzer Länge.',
+ cls_125:'Leichter Zweitakter mit Serienrahmen. Wendig und gutmütig, aber an den steilsten Stellen geht ihm die Kraft aus.',
+ cls_500:'Einzylinder-Viertakter mit verlängerter Schwinge. Ein ausgewogenes Wettbewerbsmotorrad.',
+ cls_open:'Großer Motor, fast doppelt so lange Schwinge und Schaufeln am Hinterreifen. Enorme Leistung und Traktion, aber schwer zu bändigen.',
+ wx_kuiva:'Sonnig',wx_polyinen:'Heiß und staubig',wx_kostea:'Bewölkt, feuchter Boden',wx_sade:'Regen',wx_sumu:'Nebel',wx_vaihtuva:'Wechselnd',
+ help:'<details><summary>Anleitung</summary><ul><li><b>Linker Daumen</b> – Gas: nach oben ziehen. Nach unten ziehen bremst.</li><li><b>Rechter Daumen</b> – Haltung des Fahrers: Der Fahrer ist von Anfang an ganz nach vorn gelehnt. Nach unten ziehen verlagert das Gewicht nach hinten (halb ist neutral, ganz unten voll hinten), zur Seite lenkt.</li><li>Zu weit nach hinten gelehnt oder zu viel Gas: das Motorrad <b>überschlägt sich</b>. Zu weit nach vorn: das <b>Hinterrad rutscht</b>.</li><li>Stufen, Sprünge und Wellen werfen die Front hoch und können dich abheben lassen. In der Luft hebt Gas die Front, die Bremse senkt sie.</li><li>Ein schneller Ruck nach hinten entlastet die Front – so kommst du über Stufen. Die Federung schluckt kleine Unebenheiten, aber ein harter Schlag gegen eine Stufe kostet Tempo und kann dich abheben lassen.</li><li>Am steilen Hang hebt Vollgas die Front leicht: Gas dosieren und nach vorn lehnen.</li><li>Das Wetter beeinflusst den Grip: Bei Regen und Staub rutscht das Hinterrad leichter, feuchter Boden greift am besten.</li><li>Ein Versuch endet, wenn du stehen bleibst, zurückrollst, stürzt oder über die Absperrung fährst. Gewertet wird die am Hang gefahrene Strecke.</li><li>Halte das Handy quer. Wenn du nichts hörst, dreh die Lautstärke auf und prüfe die 🔊-Taste.</li></ul></details>'}
+};
+let LANG='fi';try{LANG=localStorage.getItem('mkKieli')||'fi';}catch(e){}
+if(!STR[LANG])LANG='fi';
+function tr(k,...a){let s=(STR[LANG]&&STR[LANG][k])??STR.fi[k]??k;a.forEach((v,i)=>{s=s.split('{'+i+'}').join(v);});return s;}
+function dec(v,d=1){const t=v.toFixed(d);return LANG==='en'?t:t.replace('.',',');}
+function ord(n){if(LANG!=='en')return n+'.';const m=n%100;return n+((m>10&&m<14)?'th':n%10===1?'st':n%10===2?'nd':n%10===3?'rd':'th');}
+function trackName(t){return tr('trk_'+t.id);}
+function applyLang(){document.documentElement.lang=LANG;document.title=tr('title');}
+applyLang();
+
+/* ================= sää =================
+   Sää muuttaa pitoa ja vierintävastusta. Kostea multa pitää parhaiten, sade ja kuiva pöly heikentävät pitoa. */
+const WEATHERS={
+ kuiva:{ic:'☀️',grip:1.0,rr:0,sky:['#7fa9cf','#d3e3ea'],tint:null,dust:'#b8946a',dustK:1},
+ polyinen:{ic:'💨',grip:.86,rr:0,sky:['#c7b48c','#efe2c3'],tint:'rgba(225,180,110,.13)',dust:'#d6bd92',dustK:1.9},
+ kostea:{ic:'☁️',grip:1.07,rr:.05,sky:['#8d99a3','#c7cfd4'],tint:'rgba(50,62,75,.13)',dust:'#7a5e40',dustK:.6},
+ sade:{ic:'🌧️',grip:.76,rr:.25,sky:['#5d6872','#9aa5ad'],tint:'rgba(25,40,58,.26)',dust:'#5b4630',dustK:.9},
+ sumu:{ic:'🌫️',grip:1.02,rr:.03,sky:['#b9c2c7','#dde3e6'],tint:'rgba(70,80,88,.06)',dust:'#7a5e40',dustK:.6,fog:true},
+};
+const WX_KEYS=Object.keys(WEATHERS);
+const WX_START={kuiva:.35,polyinen:.15,kostea:.25,sade:.15,sumu:.1};
+const WX_NEXT={kuiva:{kuiva:.55,polyinen:.2,kostea:.2,sade:.05},polyinen:{polyinen:.55,kuiva:.35,kostea:.1},
+  kostea:{kostea:.4,sade:.25,kuiva:.2,sumu:.15},sade:{sade:.45,kostea:.45,sumu:.1},sumu:{sumu:.4,kostea:.4,kuiva:.2}};
+function pickW(tab,r){let x=r(),acc=0;for(const k in tab){acc+=tab[k];if(x<acc)return k;}return Object.keys(tab)[0];}
+let WXK='kuiva',WX=WEATHERS.kuiva;
+function setWx(k){WXK=WEATHERS[k]?k:'kuiva';WX=WEATHERS[WXK];}
+function wxText(k){const w=WEATHERS[k];return tr('wx_line',w.ic,tr('wx_'+k),Math.round(w.grip*100));}
+
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let Wd=0,Ht=0,DPR=1;
+function resize(){DPR=Math.min(2,window.devicePixelRatio||1);Wd=innerWidth;Ht=innerHeight;cv.width=Math.round(Wd*DPR);cv.height=Math.round(Ht*DPR);}
+addEventListener('resize',resize);resize();
+
+/* ================= radat =================
+   Radat on tehty oikeiden moottoripyörien mäkikiipeilykisojen mittojen ja muotojen pohjalta,
+   mutta nimet ovat keksittyjä. Kaikki matkat on annettu rinnettä pitkin mitattuina metreinä.
+   Rata kulkee maailman -x-suuntaan: s = -x (vaakamatka lähtöviivasta), l = y (sivusuunta). */
+const C=Math.cos(Math.PI/6),S=0.5,G=9.8,VZ=1.35;
+const TRACKS=[
+ {id:'niitty',nimi:'Alppiniitty',kuvaus:'Leveä niittyrinne. Alhaalla kumpareita, ylempänä kynnyksiä ja lopussa jyrkkä kivikko.',
+  pituus:235.1,halfW:10.2,
+  ka:[-80,0,30,110,175,205,235.1,250,275,300,520],kg:[.02,.04,.30,.50,.68,.80,.88,.10,.10,1.0,1.0],
+  ledges:[[48,.45],[78,.55],[104,.6],[131,.7],[152,.7],[171,.8],[188,.85],[203,.9],[214,.9],[224,1.0],[231,.8]],
+  whoops:[8,135,.32,6.2],muTop:.97,muFrom:140,roughFrom:150,rutTo:200,rockFrom:145,rocks:46,fans:420,
+  grass:[90,140,62],high:[118,130,86],dirt:[152,114,76],trees:.47},
+ {id:'kaksoismuuri',nimi:'Kaksoismuuri',kuvaus:'Kapea rata. Heti alussa tasanne ja noin neljän metrin muuri, joka pysäyttää monet. Lopussa erittäin jyrkkä loppumuuri.',
+  pituus:238,halfW:5.5,
+  ka:[-80,0,15,19,24,25,29.5,31,36,90,150,190,212,222,238,250,270,300,520],kg:[.02,.05,.25,0,0,1.05,1.05,.15,.35,.55,.62,.70,.85,1.15,1.2,.1,.1,1,1],
+  ledges:[[62,.5],[110,.6],[160,.7],[195,.7]],
+  whoops:[40,150,.28,5.2],muTop:.95,muFrom:150,roughFrom:150,rutTo:170,rockFrom:170,rocks:18,fans:320,
+  grass:[104,138,70],high:[126,124,90],dirt:[140,104,70],trees:.5},
+ {id:'mahdoton',nimi:'Mahdoton rinne',kuvaus:'Koko matkan 70–82 % jyrkkyys, hyppyreitä tasanteineen ja lähes pystysuora loppumuuri. Yleisö tungeksii alarinteessä.',
+  pituus:237,halfW:4.6,
+  ka:[-80,0,10,22,58,59.5,63,64.5,110,111.5,115,116.5,160,161.5,165,166.5,205,224,227,237,245,270,300,520],
+  kg:[.02,.04,.45,.72,.75,-.12,-.12,.78,.78,-.12,-.12,.80,.80,-.1,-.1,.82,.82,.82,1.6,1.6,.1,.1,1,1],
+  ledges:[[85,.4],[140,.5],[190,.5]],
+  whoops:[0,0,0,6],muTop:1.02,muFrom:150,roughFrom:100,rutTo:120,rockFrom:120,rocks:25,fans:360,fansLow:true,
+  grass:[78,128,58],high:[96,128,70],dirt:[132,100,70],trees:.44},
+ {id:'seina',nimi:'Lyhyt seinä',kuvaus:'Vain 180 metriä, mutta nousua noin sata metriä. Jyrkkä heti alusta, kynnyksiä tasaisin välein ja metsää ympärillä.',
+  pituus:180,halfW:5,
+  ka:[-80,0,8,30,120,150,168,180,188,210,240,520],kg:[.02,.05,.55,.65,.72,.80,.92,.95,.1,.1,1,1],
+  ledges:[[45,.5],[75,.6],[100,.6],[125,.7],[145,.7],[162,.8]],
+  whoops:[0,0,0,6],muTop:1.0,muFrom:120,roughFrom:110,rutTo:140,rockFrom:120,rocks:20,fans:260,
+  grass:[70,120,56],high:[92,118,70],dirt:[124,96,66],trees:.40},
+ {id:'pitka',nimi:'Pitkä vuori',kuvaus:'',
+  pituus:305,halfW:5.5,
+  ka:[-80,0,5,11,40,290,305,315,330,360,520],kg:[.02,.03,.03,.7,.76,.78,.9,.1,.1,1,1],
+  ledges:[[45,.6],[70,-.5],[95,.7],[120,-.6],[150,.8],[175,-.5],[205,.9],[230,-.6],[255,.9],[280,1.0],[296,.8]],
+  whoops:[0,0,0,6],muTop:.95,muFrom:150,roughFrom:120,rutTo:200,rockFrom:150,rocks:30,fans:320,fansLow:true,
+  grass:[146,146,104],high:[160,150,116],dirt:[176,140,100],trees:.62},
+ {id:'valot',nimi:'Valonheitinrinne',kuvaus:'',night:true,
+  pituus:200,halfW:6,
+  ka:[-80,0,20,80,140,175,200,210,240,270,520],kg:[.02,.05,.4,.55,.65,.75,.85,.1,.1,1,1],
+  ledges:[[40,.5],[70,.6],[100,.6],[125,.7],[150,.7],[170,.8],[188,.8]],
+  whoops:[10,60,.3,5.5],muTop:.98,muFrom:120,roughFrom:140,rutTo:160,rockFrom:150,rocks:15,fans:380,
+  grass:[70,120,60],high:[96,124,72],dirt:[140,105,72],trees:.45},
+ {id:'hyppyri',nimi:'Hyppyrimäki',kuvaus:'',
+  pituus:125,halfW:5,
+  ka:[-80,0,6,20,60,100,125,135,160,190,520],kg:[.02,.04,.45,.75,.85,.92,1.0,.1,.1,1,1],
+  ledges:[[20,.75],[40,.85],[60,.9],[80,.95],[100,1.0],[116,.85]],
+  whoops:[0,0,0,6],muBase:.98,muTop:.9,muFrom:40,roughFrom:60,rutTo:100,rockFrom:0,rocks:0,fans:420,
+  grass:[74,118,54],high:[86,120,62],dirt:[118,86,58],trees:.38},
+ {id:'louhos',nimi:'Louhos',kuvaus:'',
+  pituus:168,halfW:5,
+  ka:[-80,0,10,40,100,140,168,178,200,230,520],kg:[.02,.04,.45,.6,.72,.85,.95,.1,.1,1,1],
+  ledges:[[30,.6],[55,.7],[80,.5],[105,.8],[125,.9],[145,.9],[160,.7]],
+  whoops:[0,0,0,6],muBase:1.02,muTop:.88,muFrom:60,roughFrom:70,rutTo:80,rockFrom:30,rocks:60,fans:250,
+  grass:[128,124,112],high:[140,134,122],dirt:[150,140,124],trees:.7},
+];
+let T=TRACKS[0],FINISH=235.1,HALFW=10.2,LEN=235.1,LEDGES=[],WH=[0,0,0,6],MUF=[140,235],ROUGHF=150,RUTF=[130,200];
+function hash(i,j){let n=(Math.imul(i,374761393)+Math.imul(j,668265263)+12345)|0;n=Math.imul(n^(n>>>13),1274126177);n^=n>>>16;return (n>>>0)/4294967296;}
+function vnoise(x,y){const i=Math.floor(x),j=Math.floor(y),fx=x-i,fy=y-j,u=fx*fx*(3-2*fx),v=fy*fy*(3-2*fy);const a=hash(i,j),b=hash(i+1,j),c=hash(i,j+1),d=hash(i+1,j+1);return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v;}
+function fbm(x,y){let s=0,a=1,t=0;for(let o=0;o<3;o++){s+=a*vnoise(x,y);t+=a;a*=.5;x*=2.03;y*=2.03;}return s/t;}
+let rs=7;function rnd(){rs=(Math.imul(rs,1103515245)+12345)>>>0;return rs/4294967296;}
+function smooth(a,b,x){const t=Math.min(1,Math.max(0,(x-a)/(b-a)));return t*t*(3-2*t);}
+
+// rinteen profiili: jyrkkyys annettu rinnettä pitkin mitatun matkan funktiona
+function gradeArc(a){const K=T.ka,Gk=T.kg;for(let k=0;k<K.length-1;k++)if(a<K[k+1]){const t=Math.max(0,(a-K[k])/(K[k+1]-K[k]));return Gk[k]+(Gk[k+1]-Gk[k])*t;}return Gk[Gk.length-1];}
+const A0=-80,A1=520,DA=.05,NA=Math.round((A1-A0)/DA);
+const PX=new Float64Array(NA+1),PZ=new Float64Array(NA+1);
+const HS0=-82,HDS=.1,NH=4400;const ZH=new Float32Array(NH+1),AH=new Float32Array(NH+1);
+function buildProfile(){
+  let x=0,z=0;for(let i=0;i<=NA;i++){PX[i]=x;PZ[i]=z;const g=gradeArc(A0+i*DA+DA/2),c=1/Math.sqrt(1+g*g);x+=DA*c;z+=DA*c*g;}
+  const i0=Math.round(-A0/DA),ox=PX[i0],oz=PZ[i0];for(let i=0;i<=NA;i++){PX[i]-=ox;PZ[i]-=oz;}
+  let j=0;for(let k=0;k<=NH;k++){const sx=HS0+k*HDS;
+    if(sx<=PX[0]){ZH[k]=PZ[0]+(sx-PX[0])*.02;AH[k]=A0+(sx-PX[0]);continue;}
+    while(j<NA-1&&PX[j+1]<sx)j++;
+    if(sx>=PX[NA]){ZH[k]=PZ[NA]+(sx-PX[NA]);AH[k]=A1;continue;}
+    const t=(sx-PX[j])/(PX[j+1]-PX[j]);ZH[k]=PZ[j]+(PZ[j+1]-PZ[j])*t;AH[k]=A0+(j+t)*DA;}
+}
+function tab(arr,s){const f=(Math.max(HS0,Math.min(HS0+NH*HDS-.001,s))-HS0)/HDS,i=Math.floor(f),t=f-i;return arr[i]+(arr[i+1]-arr[i])*t;}
+function zp(s){return tab(ZH,s);}
+function arcOf(s){return tab(AH,s);}
+function sOfArc(a){const f=(Math.max(A0,Math.min(A1-.01,a))-A0)/DA,i=Math.floor(f),t=f-i;return PX[i]+(PX[i+1]-PX[i])*t;}
+function gradeAt(s){return gradeArc(arcOf(s));}
+function features(s,l){
+  let z=0;
+  if(WH[2]>0){const wa=WH[2]*smooth(WH[0],WH[0]+10,s)*(1-smooth(WH[1]-25,WH[1],s));
+    if(wa>0)z+=wa*(.5-.5*Math.cos(2*Math.PI*s/WH[3]))*(.75+.25*Math.sin(l*.45+s*.05));}
+  for(const L of LEDGES){const d=s-L.s;if(d>-.5&&d<7){const hh=L.h*(.55+.45*Math.sin(l*.42+L.ph));z+=hh*(smooth(-.25,.25,d)-smooth(.25,6,d));}}
+  z-=.22*rutDepth(s,l);
+  z+=(fbm(s*.45+20,l*.45)-.5)*(.25+.75*smooth(ROUGHF,FINISH-5,s));
+  return z;
+}
+function rutDepth(s,l){const rc=Math.min(1.2,HALFW*.25)*Math.sin(s/37);return Math.exp(-(((l-rc)/.55)**2))*(1-smooth(RUTF[0],RUTF[1],s))*smooth(-5,5,s);}
+function Hs(s,l){const al=Math.abs(l),m=1-smooth(HALFW-1.2,HALFW+2.8,al),out=smooth(HALFW+2,40,al);
+  return zp(s)+.012*l*l+(m>0?m*features(s,l):0)+out*(fbm(s*.03+5,l*.03+9)-.5)*16+(1-m)*(fbm(s*.2,l*.2)-.5)*.6+smooth(FINISH+25,FINISH+95,s)*(fbm(s*.05,l*.05+3)-.5)*30;}
+function H(x,y){return Hs(-x,y);}
+function muAt(s){return T.muBase-(T.muBase-T.muTop)*smooth(MUF[0],MUF[1],s);}
+
+/* ================= ruudukko ja laatat ================= */
+const X0=-345,Y0=-62,NX=405,NY=124,CS=1,NVX=NX+1;
+const NVt=(NX+1)*(NY+1);
+const IX=new Float32Array(NVt),IY=new Float32Array(NVt),HV=new Float32Array(NVt);
+const NC=NX*NY,COL=new Array(NC),BX0=new Float32Array(NC),BX1=new Float32Array(NC),BY0=new Float32Array(NC),BY1=new Float32Array(NC);
+const LV=(()=>{const l=[-.35,.45,.82],m=Math.hypot(...l);return l.map(v=>v/m);})();
+function shadeAt(dzdx,dzdy){const m=Math.hypot(dzdx,dzdy,1);return .38+.8*Math.max(0,(-dzdx*LV[0]-dzdy*LV[1]+LV[2])/m);}
+function mix(a,b,t){return [a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];}
+function rgb(c,s){return `rgb(${Math.min(255,c[0]*s)|0},${Math.min(255,c[1]*s)|0},${Math.min(255,c[2]*s)|0})`;}
+function buildGrid(){
+  for(let j=0;j<=NY;j++)for(let i=0;i<=NX;i++){const x=X0+i*CS,y=Y0+j*CS,k=j*NVX+i,h=H(x,y);HV[k]=h;IX[k]=(y-x)*C;IY[k]=(x+y)*S-h*VZ;}
+  const sLow=sOfArc(T.pituus*.5),zTop=zp(FINISH);
+  for(let j=0;j<NY;j++)for(let i=0;i<NX;i++){
+    const v=j*NVX+i,c=j*NX+i,h00=HV[v],h10=HV[v+1],h01=HV[v+NVX],h11=HV[v+NVX+1];
+    const h=(h00+h10+h01+h11)/4,dzdx=((h10+h11)-(h00+h01))/(2*CS),dzdy=((h01+h11)-(h00+h10))/(2*CS),st=Math.hypot(dzdx,dzdy);
+    const cx=X0+(i+.5)*CS,cy=Y0+(j+.5)*CS,s=-cx,l=cy,al=Math.abs(l);
+    let col=T.grass;
+    col=mix(col,T.high,smooth(sLow,FINISH+15,s));
+    col=mix(col,[130,126,118],smooth(FINISH+20,FINISH+55,s)+smooth(.9,1.4,st)*.6);
+    col=mix(col,[236,240,246],smooth(zTop+30,zTop+55,h)*(1-smooth(1,1.5,st)));
+    if(al<HALFW+.6&&s>-45&&s<FINISH+4){
+      let d=T.dirt;
+      d=mix(d,[104,76,50],rutDepth(s,l)*.8);
+      d=mix(d,[142,134,122],smooth(ROUGHF,FINISH,s)*.7);
+      d=mix(d,[110,84,58],smooth(1.1,1.6,st)*.5);
+      col=mix(col,d,1-smooth(HALFW-1.2,HALFW+.6,al));
+      for(const Lg of LEDGES){const dd=s-Lg.s;if(dd>-.6&&dd<.5){col=mix(col,[188,162,128],.55);}else if(dd>=.5&&dd<2.2){col=mix(col,[96,72,48],.35);}}
+      if(s>=0&&s<.8)col=[240,240,240];
+      if(s>=FINISH&&s<FINISH+1.6)col=((Math.floor(l)+Math.floor((s-FINISH)*1.3))&1)?[30,30,30]:[240,240,240];
+    }
+    const rv=.93+hash(i+300,j+700)*.12;
+    COL[c]=rgb(col,shadeAt(dzdx,dzdy)*rv);
+    const xs=[IX[v],IX[v+1],IX[v+NVX],IX[v+NVX+1]],ys=[IY[v],IY[v+1],IY[v+NVX],IY[v+NVX+1]];
+    BX0[c]=Math.min(...xs);BX1[c]=Math.max(...xs);BY0[c]=Math.min(...ys);BY1[c]=Math.max(...ys);
+  }
+}
+const R=12,TS=512,TW=TS/R;
+const tiles=new Map();let tileClock=0;
+function renderTile(tx,ty){
+  const cn=document.createElement('canvas');cn.width=cn.height=TS;const g=cn.getContext('2d');
+  const ix0=tx*TW,iy0=ty*TW,ix1=ix0+TW,iy1=iy0+TW;
+  g.setTransform(R,0,0,R,-ix0*R,-iy0*R);g.lineWidth=1.3/R;g.lineJoin='round';
+  for(let k=0;k<=NX+NY-2;k++){const iLo=Math.max(0,k-(NY-1)),iHi=Math.min(NX-1,k);
+    for(let i=iLo;i<=iHi;i++){const j=k-i,c=j*NX+i;
+      if(BX1[c]<ix0||BX0[c]>ix1||BY1[c]<iy0||BY0[c]>iy1)continue;
+      const v=j*NVX+i;g.fillStyle=g.strokeStyle=COL[c];g.beginPath();
+      g.moveTo(IX[v],IY[v]);g.lineTo(IX[v+1],IY[v+1]);g.lineTo(IX[v+NVX+1],IY[v+NVX+1]);g.lineTo(IX[v+NVX],IY[v+NVX]);g.closePath();g.fill();g.stroke();}}
+  return cn;
+}
+function getTile(tx,ty,budget){const key=(tx+500)*1000+(ty+500);let t=tiles.get(key);
+  if(!t){if(budget.n<=0)return null;budget.n--;t={c:renderTile(tx,ty),u:0};tiles.set(key,t);
+    if(tiles.size>48){let ok=null,ou=1e18;for(const [k2,v2] of tiles)if(v2.u<ou){ou=v2.u;ok=k2;}tiles.delete(ok);}}
+  t.u=++tileClock;return t.c;}
+
+/* ================= esineet ================= */
+const objs=[],rocks=[];let bestObj=null;
+function addObj(o){o.z=H(o.x,o.y);objs.push(o);return o;}
+const shirt=['#e8382a','#2a6fe8','#f2c230','#ffffff','#30a050','#ff7a20','#8a3ad0','#222'];
+function buildObjects(){
+  objs.length=0;rocks.length=0;rs=7+TRACKS.indexOf(T)*1013;
+  for(const side of [-1,1]){let prev=null;for(let s=-24;s<=FINISH+3;s+=2.5){const o=addObj({t:'post',x:-s,y:side*HALFW,prev});prev=o;}}
+  for(let a=25;a<LEN-3;a+=25){const s=sOfArc(a);addObj({t:'sign',x:-s,y:-(HALFW+1.2),txt:String(a)});}
+  addObj({t:'gate',x:0,y:0,txt:'gate_start'});addObj({t:'gate',x:-FINISH,y:0,txt:'gate_finish'});
+  const top=FINISH*.92;
+  for(let a=0;a<T.fans;a++){const s=-20+rnd()*(top+20),side=rnd()<.5?-1:1,l=side*(HALFW+2.2+Math.pow(rnd(),1.5)*7);
+    const cut=T.fansLow?smooth(FINISH*.2,FINISH*.7,s)*.9:smooth(FINISH*.35,top,s)*.85;if(rnd()<cut)continue;
+    addObj({t:'fan',x:-s,y:l,c:shirt[(rnd()*shirt.length)|0],k:.85+rnd()*.3,ph:rnd()*6,sk:['#f0c8a0','#e2b48a','#c58c5c','#8d5a3b'][(rnd()*4)|0],h:['#3a2a1a','#d8b060','#222','#e8382a','#2a6fe8','#f4f4f4','#6b4a2a'][(rnd()*7)|0],cap:rnd()<.4,pants:['#2b3140','#3c4a63','#5a4a3a','#222'][(rnd()*4)|0]});}
+  for(let a=0;a<900;a++){const s=-55+rnd()*(FINISH+55),l=(rnd()-.5)*118;if(Math.abs(l)<HALFW+14||fbm(s*.04+3,l*.04)<T.trees)continue;addObj({t:'tree',x:-s,y:l,s:.8+rnd()*.6});}
+  for(let a=0;a<120;a++){const s=FINISH*.45+rnd()*(FINISH*.55+95),l=(rnd()-.5)*110;if(Math.abs(l)<HALFW+4)continue;addObj({t:'rock',x:-s,y:l,r:.9+rnd()*1.8,seed:rnd()*6});}
+  const rf=sOfArc(T.rockFrom);
+  for(let a=0;a<T.rocks&&rf<FINISH-3;a++){const s=rf+rnd()*(FINISH-rf-2),l=(rnd()-.5)*(HALFW*2-3);rocks.push(addObj({t:'rock',x:-s,y:l,r:.3+rnd()*.28,seed:rnd()*6,small:true}));}
+  if(T.night)for(let a=8,k=0;a<LEN+5;a+=26,k++){const s=sOfArc(a),sd=k%2?1:-1;addObj({t:'lamp',x:-s,y:sd*(HALFW+3.5)});}
+  bestObj=addObj({t:'best',x:0,y:HALFW+.8,on:false});
+}
+function trackStats(t){const o=T;T=t;let rise=0,mx=0;for(let a=0;a<t.pituus;a+=.1){const g=gradeArc(a);rise+=Math.sin(Math.atan(g))*.1;mx=Math.max(mx,g);}T=o;return {rise,max:mx};}
+function buildTrack(t){
+  T=t;T.muBase=T.muBase||1.12;
+  buildProfile();
+  LEN=T.pituus;FINISH=sOfArc(LEN);HALFW=T.halfW;
+  LEDGES=T.ledges.map(([a,h],k)=>({s:sOfArc(a),h,ph:k*1.7}));
+  WH=[sOfArc(T.whoops[0]),sOfArc(T.whoops[1]),T.whoops[2],T.whoops[3]];
+  MUF=[sOfArc(T.muFrom),FINISH];ROUGHF=sOfArc(T.roughFrom);RUTF=[sOfArc(T.rutTo-70),sOfArc(T.rutTo)];
+  buildGrid();tiles.clear();buildObjects();
+}
+
+/* ================= äänet ================= */
+const SND={a:null,on:true,cheer:0,near:0,nearT:0,crashed:false,thudT:0};
+try{SND.on=localStorage.getItem('mkAani')!=='0';}catch(e){}
+const GR=[620,430,320,250,205];let gear=0,rpm=1500,shiftT=0;
+function audioInit(){
+  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+  if(SND.a){if(SND.a.state!=='running')SND.a.resume().catch(()=>{});return;}
+  let a;try{a=new AC();}catch(e){return;}
+  SND.a=a;
+  const master=a.createGain();master.gain.value=SND.on?.8:0;
+  const comp=a.createDynamicsCompressor();master.connect(comp);comp.connect(a.destination);SND.master=master;
+  const nb=a.createBuffer(1,a.sampleRate*2,a.sampleRate),d=nb.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;SND.nb=nb;
+  const noise=()=>{const n=a.createBufferSource();n.buffer=nb;n.loop=true;n.start(0,Math.random()*1.5);return n;};
+  const filt=(type,f,q)=>{const b=a.createBiquadFilter();b.type=type;b.frequency.value=f;b.Q.value=q;return b;};
+  const gain=v=>{const g=a.createGain();g.gain.value=v;return g;};
+  // moottori: sahalaine + kanttiaalto, särö, sytytystahdin mukainen sykkiminen ja alipäästö
+  const o1=a.createOscillator();o1.type='sawtooth';const o2=a.createOscillator();o2.type='square';
+  const g1=gain(.5),g2=gain(.35);o1.connect(g1);o2.connect(g2);
+  const sh=a.createWaveShaper(),cur=new Float32Array(1024);for(let i=0;i<1024;i++)cur[i]=Math.tanh((i/512-1)*3);sh.curve=cur;
+  g1.connect(sh);g2.connect(sh);
+  const am=gain(.6),lfo=a.createOscillator(),lfoG=gain(.4);lfo.type='sine';lfo.connect(lfoG);lfoG.connect(am.gain);sh.connect(am);
+  const ex=noise(),exF=filt('bandpass',900,.8),exG=gain(0);ex.connect(exF);exF.connect(exG);exG.connect(am);
+  const lp=filt('lowpass',800,2),eng=gain(0);am.connect(lp);lp.connect(eng);eng.connect(master);
+  // sora, tuuli, yleisö
+  const gr=noise(),grF=filt('bandpass',2600,.6),grG=gain(0);gr.connect(grF);grF.connect(grG);grG.connect(master);
+  const wi=noise(),wiF=filt('lowpass',420,.5),wiG=gain(0);wi.connect(wiF);wiF.connect(wiG);wiG.connect(master);
+  const cr=noise(),crF=filt('bandpass',1100,.45),crF2=filt('peaking',2400,1),crA=gain(.8),crG=gain(0);crF2.gain.value=6;
+  cr.connect(crF);crF.connect(crF2);crF2.connect(crA);crA.connect(crG);crG.connect(master);
+  [o1,o2,lfo].forEach(o=>o.start());
+  const ra=noise(),raF=filt('bandpass',4200,.35),raG=gain(0);ra.connect(raF);raF.connect(raG);raG.connect(master);
+  Object.assign(SND,{o1,o2,lfo,lp,eng,exG,grG,wiG,crA,crG,crF,raG});
+}
+function setMute(on){SND.on=on;try{localStorage.setItem('mkAani',on?'1':'0');}catch(e){}
+  document.getElementById('aani').textContent=on?'🔊':'🔇';
+  if(SND.a)SND.master.gain.setTargetAtTime(on?.8:0,SND.a.currentTime,.05);}
+function blip(f,dur,type,vol,f2,delay=0){const a=SND.a;if(!a)return;const t=a.currentTime+delay,o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+dur);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.005);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(g);g.connect(SND.master);o.start(t);o.stop(t+dur+.05);}
+function burst(dur,f,q,vol,delay=0){const a=SND.a;if(!a)return;const t=a.currentTime+delay,n=a.createBufferSource(),b=a.createBiquadFilter(),g=a.createGain();n.buffer=SND.nb;b.type='bandpass';b.frequency.value=f;b.Q.value=q;
+  g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);n.connect(b);b.connect(g);g.connect(SND.master);n.start(t,Math.random());n.stop(t+dur+.05);}
+
+/* Puhelimissa ääni pitää herättää kosketuksella. iPhonessa äänetön-kytkin
+   vaientaa selaimen syntetisoidut äänet, ellei äänitilaksi vaihdeta "toisto". */
+function silentWavUrl(){const sr=8000,n=sr/2,buf=new ArrayBuffer(44+n*2),v=new DataView(buf);
+  const w=(o,str)=>{for(let i=0;i<str.length;i++)v.setUint8(o+i,str.charCodeAt(i));};
+  w(0,'RIFF');v.setUint32(4,36+n*2,true);w(8,'WAVE');w(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
+  v.setUint32(24,sr,true);v.setUint32(28,sr*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,'data');v.setUint32(40,n*2,true);
+  for(let i=0;i<n;i++)v.setInt16(44+i*2,(i&1)?1:-1,true);
+  return URL.createObjectURL(new Blob([buf],{type:'audio/wav'}));}
+function unlockAudio(){
+  try{if(navigator.audioSession&&navigator.audioSession.type!=='playback')navigator.audioSession.type='playback';}catch(e){}
+  try{if(!SND.el){const el=document.createElement('audio');el.src=silentWavUrl();el.loop=true;el.setAttribute('playsinline','');el.preload='auto';SND.el=el;}
+    if(SND.el.paused){const pr=SND.el.play();if(pr&&pr.catch)pr.catch(()=>{});}}catch(e){}
+  audioInit();
+  const a=SND.a;if(!a)return;
+  if(a.state!=='running'){const pr=a.resume();if(pr&&pr.catch)pr.catch(()=>{});}
+  try{const b=a.createBuffer(1,1,a.sampleRate),src=a.createBufferSource();src.buffer=b;src.connect(a.destination);src.start(0);}catch(e){}
+}
+['touchend','click','pointerup','keydown'].forEach(ev=>document.addEventListener(ev,()=>{if(!SND.a||SND.a.state!=='running'||(SND.el&&SND.el.paused))unlockAudio();},{capture:true,passive:true}));
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&SND.a&&SND.a.state!=='running')SND.a.resume().catch(()=>{});});
+const sfx={
+  land(v){burst(.3,260,.7,Math.min(.9,.15+v*.06));blip(90,.25,'sine',Math.min(.7,.2+v*.04),40);},
+  thud(j){if(simT-SND.thudT<.25)return;SND.thudT=simT;burst(.14,220,.8,Math.min(.6,j*.04));blip(70,.12,'sine',Math.min(.4,j*.03),45);},
+  rock(){burst(.09,1700,2,.4);blip(420,.07,'triangle',.25,180);},
+  crash(){burst(.9,650,.5,1);burst(.5,2200,1.5,.4,.05);[523,787,1130,1490].forEach((f,i)=>blip(f,.45,'triangle',.18,f*.94,.04+i*.06));SND.cheer=Math.max(SND.cheer,1.2);},
+  start(){blip(660,.15,'square',.18);blip(660,.15,'square',.18,null,.5);blip(990,.35,'square',.22,null,1.0);},
+  finish(){[523,659,784,1047].forEach((f,i)=>blip(f,.35,'square',.16,null,i*.14));SND.cheer=3;},
+  record(){blip(784,.2,'triangle',.2,null,.6);blip(1175,.4,'triangle',.22,null,.8);}
+};
+function audioUpdate(dt){
+  const a=SND.a;if(!a)return;const t=a.currentTime;
+  const play=state==='play'||(state==='watch'&&W.phase!=='done'),v=Math.max(0,B.air?B.vh:B.v);
+  // kierrokset ja vaihteet
+  if(play){
+    const SN=BK.snd,gk=SN.red/9800;
+    if(B.air){rpm+=(SN.idle+inp.thr*(SN.red-SN.idle)-rpm)*Math.min(1,dt*6);}
+    else{let r=v*GR[gear]*gk;
+      if(r>SN.red&&gear<4){gear++;shiftT=.13;r=v*GR[gear]*gk;}
+      else if(r<SN.red*.44&&gear>0){gear--;r=v*GR[gear]*gk;}
+      if(gear===0)r=Math.max(r,SN.idle+inp.thr*SN.red*.43);
+      r=Math.max(SN.idle,r)+B.slip*inp.thr*SN.red*.36;
+      rpm+=(Math.min(SN.red*1.17,r)-rpm)*Math.min(1,dt*10);}
+  }else{rpm+=(BK.snd.idle-rpm)*Math.min(1,dt*3);gear=0;}
+  shiftT=Math.max(0,shiftT-dt);
+  const thr=play?inp.thr:0,on=play||(state==='end'&&!SND.crashed);
+  const f=rpm/60,k=.04;
+  SND.o1.frequency.setTargetAtTime(f,t,k);SND.o2.frequency.setTargetAtTime(f*BK.snd.o2,t,k);SND.lfo.frequency.setTargetAtTime(f*BK.snd.fire,t,k);
+  SND.lp.frequency.setTargetAtTime(Math.max(150,280+BK.snd.cut+thr*2000+rpm*.13),t,k);
+  SND.eng.gain.setTargetAtTime(on?(.16+.3*thr)*BK.snd.vol*(shiftT>0?.35:1):0,t,on?.05:.15);
+  SND.exG.gain.setTargetAtTime(.04+.22*thr,t,k);
+  const ground=play&&!B.air;
+  SND.grG.gain.setTargetAtTime(ground?Math.min(.06,v*.004)+B.slip*thr*.35:0,t,.05);
+  SND.wiG.gain.setTargetAtTime((play?Math.min(.18,v*v*.00025):0)+(WXK==='polyinen'?.05:WXK==='sade'?.03:0),t,.2);
+  SND.raG.gain.setTargetAtTime(WXK==='sade'?.07:0,t,.4);
+  // yleisö: lähellä olevien katsojien määrä
+  SND.nearT-=dt;if(SND.nearT<=0){SND.nearT=.3;let n=0;for(const o of objs)if(o.t==='fan'&&Math.abs(o.x-B.x)<35&&Math.abs(o.y-B.y)<25)n++;SND.near=n;}
+  SND.cheer=Math.max(0,SND.cheer-dt*.6);
+  const lvl=state==='menu'?0:Math.min(.22,SND.near*.004+.015)*(1+SND.cheer*1.6);
+  SND.crG.gain.setTargetAtTime(Math.min(.6,lvl),t,.25);
+  SND.crA.gain.setTargetAtTime(.65+Math.random()*.35,t,.04);
+  SND.crF.frequency.setTargetAtTime(1000+SND.cheer*250+Math.random()*120,t,.1);
+}
+
+/* ================= tila ================= */
+/* Luokat: mallina mäkikiipeilyn luokat. Isoissa luokissa takahaarukka on pidennetty, jotta pyörä ei keuli ympäri,
+   ja Open-luokan takarenkaassa on lavat. Teho ja massa (pyörä + kuljettaja) määräävät kiihtyvyyden. */
+const CLASSES=[
+ {id:'125',nimi:'125cc',kuvaus:'Kevyt kaksitahtinen vakiorungolla. Ketterä ja anteeksiantava, mutta teho loppuu jyrkimmissä nousuissa.',
+  hv:38,paino:165,L:1.48,hc:.8,xc0:.74,xcR:.32,Dmax:7,P:170,vmax:29,grip:1,Ix:.25,airK:1.35,col:'#f2c230',col2:'#2a6fe8',paddle:false,
+  snd:{idle:1900,red:12500,fire:1,o2:2,cut:500,vol:.85}},
+ {id:'500',nimi:'500cc',kuvaus:'Nelitahtinen yksisylinterinen pidennetyllä takahaarukalla. Tasapainoinen kisapyörä.',
+  hv:70,paino:195,L:1.9,hc:.85,xc0:.95,xcR:.45,Dmax:10,P:265,vmax:31,grip:1,Ix:.4,airK:1,col:'#d9312b',col2:'#e8432f',paddle:false,
+  snd:{idle:1500,red:9800,fire:.5,o2:.5,cut:0,vol:1}},
+ {id:'open',nimi:'Open',kuvaus:'Iso moottori, lähes kaksinkertainen takahaarukka ja lavat takarenkaassa. Valtava teho ja pito, mutta raskas käsitellä.',
+  hv:147,paino:245,L:2.5,hc:.9,xc0:1.22,xcR:.45,Dmax:12.5,P:440,vmax:35,grip:1.22,Ix:.8,airK:.6,col:'#2f9e44',col2:'#1d6b2c',paddle:true,
+  snd:{idle:1100,red:8800,fire:1,o2:.5,cut:-150,vol:1.15}},
+];
+const RW=.34;let BK=CLASSES[1],L=BK.L,HC=BK.hc;
+const B={wr:0,airT:0,x:0,y:0,th:Math.PI,v:0,u:0,phi:0,om:0,fish:0,slip:0,use:0,alpha:0,air:false,z:0,vz:0,vh:0,pa:0,hr:0,bvz:0,stopT:0};
+const rider={fb:0,lr:0};
+const inp={thr:0,brk:0,fb:0,lr:0};
+let state='menu',aika=0,ajossa=false,maxS=0,endMsg='',yritykset=0,simT=0;
+let paras=0,parasAika=null;
+function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+function loadBest(t,bk){const k=t.id+'_'+bk.id,old=bk.id==='500';return {d:parseFloat(lsGet('mkParas_'+k))||(old?parseFloat(lsGet('mkParas_'+t.id))||0:0),t:parseFloat(lsGet('mkAika_'+k))||(old?parseFloat(lsGet('mkAika_'+t.id))||null:null)};}
+function setBike(bk){BK=bk;L=bk.L;HC=bk.hc;lsSet('mkLuokka',bk.id);const b=loadBest(T,BK);paras=b.d;parasAika=b.t;yritykset=0;}
+function setTrack(t){buildTrack(t);const b=loadBest(t,BK);paras=b.d;parasAika=b.t;yritykset=0;lsSet('mkRata',t.id);}
+function sOf(){return -B.x;}
+function sFront(){return -B.x+Math.cos(B.air?B.pa:B.alpha)*L*.5;}
+function reset(){B.x=6;B.y=0;B.th=Math.PI;B.v=B.u=B.phi=B.om=B.fish=B.slip=0;B.air=false;B.stopT=0;rider.fb=1;rider.lr=0;initGround();aika=0;ajossa=false;maxS=0;camInit();}
+const parts=[];
+function roost(x,y,z,f0,f1,slip){const sp=2+Math.random()*3+slip*4,sd=(Math.random()-.5)*1.6;
+  parts.push({x,y,z,vx:-f0*sp-f1*sd,vy:-f1*sp+f0*sd,vz:1.5+Math.random()*3,life:.9,max:.9,col:Math.random()<.5?'#5a4130':WX.dust,r:.06+Math.random()*.08,g:9.8,clod:true});}
+function dust(x,y,z,col,n,sp){for(let i=0;i<n;i++)parts.push({x,y,z,vx:(Math.random()-.5)*sp,vy:(Math.random()-.5)*sp,vz:Math.random()*sp*.8+.4,life:.6+Math.random()*.6,max:1.2,col,r:.25+Math.random()*.35});}
+
+function endRun(msg,crashed){if(state==='watch'){watchCrash(msg,crashed);return;}if(state!=='play')return;state='end';endMsg=msg;yritykset++;SND.crashed=crashed;if(crashed)sfx.crash();
+  if(crashed)dust(B.x,B.y,(B.air?B.z:B.hr)+.5,WX.dust,30,5);
+  const valmis=maxS>=FINISH,tulos=valmis?LEN:Math.min(LEN,Math.max(0,arcOf(maxS)));let uusi=false;
+  if(tulos>paras+1e-6||(valmis&&(!parasAika||aika<parasAika))){uusi=true;paras=Math.max(paras,tulos);if(valmis)parasAika=parasAika?Math.min(parasAika,aika):aika;lsSet('mkParas_'+T.id+'_'+BK.id,String(paras));if(parasAika)lsSet('mkAika_'+T.id+'_'+BK.id,String(parasAika));}
+  lastResult={tulos,uusi,aika,valmis};
+  if(mode==='sarja'&&SER&&SER.phase==='race'){const res={d:tulos,t:valmis?aika:null};recordFrame(0);
+    if(cmpRes(res,bestOf(SER.cur.me))<0)BESTREC[recKey()]={frames:REC.slice(),msg,crashed};recordAttempt(res);}
+  else if(mode==='kaveri'&&FR&&!FR.done){FR.last={pi:FR.idx,res:{d:tulos,t:valmis?aika:null}};frRecord(FR.last.res);}else rollPracticeWx();
+  if(valmis)sfx.finish();if(uusi&&tulos>0)sfx.record();
+  setTimeout(()=>{if(state==='end')showOv(mode==='sarja'?'sarjaYritys':mode==='kaveri'?'kaveriYritys':'end');},crashed?800:500);}
+let lastResult=null;
+
+/* Pyörän kosketus maahan: renkaan säde pyöristää terävät reunat (pyörä ei putoa kapeisiin kuoppiin
+   eikä nouse jyrkkää seinää pitkin pistemäisesti). */
+const WOFF=[-.26,-.13,0,.13,.26],WDROP=WOFF.map(d=>RW-Math.sqrt(RW*RW-d*d));
+function wheelH(x,y,f0,f1){let m=-1e9;for(let k=0;k<5;k++){const d=WOFF[k],h=H(x+f0*d,y+f1*d)-WDROP[k];if(h>m)m=h;}return m;}
+function groundAlpha(x,y,th,ca){const f0=Math.cos(th),f1=Math.sin(th),lh=L*ca;return Math.atan2(wheelH(x+f0*lh,y+f1*lh,f0,f1)-wheelH(x,y,f0,f1),lh);}
+function initGround(){const f0=Math.cos(B.th),f1=Math.sin(B.th);B.hr=wheelH(B.x,B.y,f0,f1);let a=0;for(let k=0;k<10;k++)a=groundAlpha(B.x,B.y,B.th,Math.cos(a));
+  B.alpha=a;B.hf=wheelH(B.x+f0*L*Math.cos(a),B.y+f1*L*Math.cos(a),f0,f1);B.z=B.hr;B.wg=B.wgS=0;B.bvz=0;B.fvz=B.rvz=0;B.xcPrev=BK.xc0+BK.xcR*rider.fb;}
+// moottori: vääntö rajoittaa alhaisilla nopeuksilla, teho (n. 65 kW / 200 kg) suuremmilla, rajoitin 115 km/h
+function driveMax(v){const a=Math.abs(v);let d=Math.min(BK.Dmax,BK.P/Math.max(a,1));if(a>BK.vmax-2)d*=Math.max(0,(BK.vmax-a)/2);return d;}
+const CDRAG=.003;
+function step(dt){
+  simT+=dt;
+  const rk=Math.min(1,dt*7);rider.fb+=(inp.fb-rider.fb)*rk;rider.lr+=(inp.lr-rider.lr)*rk;
+  const f0=Math.cos(B.th),f1=Math.sin(B.th),r0=-f1,r1=f0;
+  const thr=inp.thr,brk=inp.brk,fb=rider.fb;
+  const xc=BK.xc0+BK.xcR*fb,dxc=(xc-B.xcPrev)/dt;B.xcPrev=xc;
+  if(B.air){
+    B.airT+=dt;B.vz-=G*dt+CDRAG*B.vz*Math.abs(B.vz)*dt;B.vh-=CDRAG*B.vh*Math.abs(B.vh)*dt;
+    B.x+=f0*B.vh*dt;B.y+=f1*B.vh*dt;B.z+=B.vz*dt;
+    // ilmassa: takapyörän kiihdytys nostaa keulaa, jarru laskee, kuljettajan siirto kääntää runkoa vastakkaiseen suuntaan
+    B.om+=(thr*2.4-brk*3.8)*BK.airK*dt-dxc*.5*dt;B.om*=1-.25*dt;B.pa+=B.om*dt;
+    B.slip=0;B.use=0;
+    const cpa=Math.cos(B.pa),lh=L*cpa,fx=B.x+f0*lh,fy=B.y+f1*lh;
+    const hrg=wheelH(B.x,B.y,f0,f1),hfg=wheelH(fx,fy,f0,f1),fz=B.z+L*Math.sin(B.pa);
+    if(B.z<=hrg||fz<=hfg){
+      let a=Math.atan2(hfg-hrg,Math.max(.5,lh));for(let k=0;k<2;k++){const l2=L*Math.cos(a);a=Math.atan2(wheelH(B.x+f0*l2,B.y+f1*l2,f0,f1)-hrg,l2);}
+      const ca=Math.cos(a),sa=Math.sin(a),l2=L*ca;
+      const phi=B.pa-a,vt=B.vh*ca+B.vz*sa,vn=Math.max(0,-(B.vz*ca-B.vh*sa));
+      B.air=false;B.hr=hrg;B.hf=wheelH(B.x+f0*l2,B.y+f1*l2,f0,f1);B.alpha=a;B.wg=B.wgS=0;
+      if(phi>1.2){endRun('m_flip',true);return;}
+      if(phi<-.62&&(vn>4.5||B.pa<-.35)){endRun('m_nose',true);return;}
+      if(vn>12){endRun('m_hard',true);return;}
+      // pinnan suuntainen vauhti säilyy, iskun ottaa jousitus; etupyörällä alastulo maksaa enemmän
+      B.v=vt*(1-Math.min(.2,vn*.01))*(phi<0?1+phi*.5:1);
+      if(phi>0){B.phi=phi;B.om=Math.min(B.om,B.om-vn*.6-.5);}else{B.phi=0;B.om=0;}
+      B.z=Math.max(hrg-.28,Math.min(B.z,hrg));B.bvz=B.vz;B.rvz=B.v*sa;B.fvz=B.v*sa;
+      dust(B.x,B.y,hrg+.2,WX.dust,Math.min(14,4+vn),2+vn*.3);
+      sfx.land(vn);if(B.airT>.45)SND.cheer=Math.min(2.5,SND.cheer+B.airT*1.5);
+    }
+  }else{
+    const a=B.alpha,ca=Math.cos(a),sa=Math.sin(a);
+    const tB=(H(B.x+r0*.6,B.y+r1*.6)-H(B.x-r0*.6,B.y-r1*.6))/1.2,cb=1/Math.sqrt(1+tB*tB),sb=tB*cb;
+    const s=-B.x,mu=muAt(s)*BK.grip*WX.grip*(state==='watch'&&W.phase==='climb'?1.25:1);
+    const gN=G*ca*cb,frontUp=B.phi>.02;
+    // takapyörän kuorma: paino + kiihdytyksen aiheuttama painonsiirto (momentti etupyörän kosketuspisteen ympäri)
+    const nr=D0=>frontUp?gN:Math.min(gN,Math.max(0,(gN*(L-xc)+D0*HC)/L));
+    const dreq=thr*driveMax(B.v);
+    let Nr=nr(dreq),fmax=mu*Nr,D=dreq,slip=0;
+    if(dreq>fmax){Nr=nr(fmax*.8);fmax=mu*Nr;D=Math.min(dreq,fmax*.8);slip=Math.min(1,.35+(dreq-fmax)/4);}
+    B.use=fmax>0?Math.min(1.3,dreq/fmax):0;
+    const brakeF=brk*mu*(frontUp?Nr:gN)*.9,drag=CDRAG*B.v*Math.abs(B.v),grav=G*sa,res=.2+WX.rr+(thr<.05?.6:0);
+    const F=D-grav-drag,sv=Math.sign(B.v);
+    if(Math.abs(B.v)<.15){const st=res+brakeF;if(Math.abs(F)<=st)B.v=0;else B.v+=(F-Math.sign(F)*st)*dt;}
+    else{const nv=B.v+(F-sv*(res+brakeF))*dt;B.v=(Math.sign(nv)!==sv&&Math.abs(F)<=res+brakeF)?0:nv;}
+    // keulinta: momentti takapyörän ympäri (veto ja jarru vs. painovoima)
+    const A=D-drag-(B.v>.1?brakeF:0);
+    const cp=Math.cos(B.phi),sp=Math.sin(B.phi),rx=xc*cp-HC*sp,ry=xc*sp+HC*cp;
+    const tau=A*ry-gN*rx,I=xc*xc+HC*HC+BK.Ix;
+    // nopea painonsiirto taakse kevenää keulaa (ja eteen painaa sitä)
+    B.om+=-dxc*.8*dt;
+    if(B.phi<=0&&tau<=0&&B.om<=0){B.phi=0;B.om=0;}
+    else{B.om+=tau/I*dt;B.om*=1-1.1*dt;B.phi+=B.om*dt;if(B.phi<0){B.phi=0;B.om=B.om<-1.5?-B.om*.15:0;}}
+    if(B.phi>1.2){endRun('m_flip',true);return;}
+    // ohjaus: kääntösäde kasvaa vauhdin mukana, etupyörän kuorma parantaa ohjausta
+    const frontLoad=frontUp?0:Math.max(0,1-Nr/gN);
+    const steerEff=frontUp?.1:.4+frontLoad*1.3;
+    const vab=Math.abs(B.v),vs=Math.min(1,vab/2.5);
+    const latMax=mu*gN*.9;
+    let yaw=rider.lr*Math.min(1.4*steerEff,1.15*latMax/Math.max(vab,1))*vs*(B.v<0?-1:1);
+    const latReq=Math.abs(B.v*yaw);
+    if(latReq>latMax){B.u-=Math.sign(yaw*B.v)*(latReq-latMax)*dt;yaw*=latMax/latReq;slip=Math.max(slip,.4);}
+    B.fish+=((Math.random()-.5)*slip*14-B.fish*3)*dt;
+    B.th+=(yaw+B.fish*Math.min(1,vab/2+.3))*dt;
+    const side=G*sb,hold=mu*gN*(slip>0?.35:.85);
+    if(Math.abs(side)>hold)B.u-=Math.sign(side)*(Math.abs(side)-hold)*dt;
+    B.u*=Math.exp(-(slip>0?1.5:6)*dt);
+    if(Math.abs(sb)>.62&&vab<2){endRun('m_side',true);return;}
+    if(Math.abs(B.u)>5){endRun('m_rear',true);return;}
+    B.slip=slip;B.wr+=(B.v*(1+slip*1.5))/RW*dt;
+    // liike
+    const vh=B.v*ca,g0=Math.cos(B.th),g1=Math.sin(B.th);
+    const nx=B.x+(g0*vh+r0*B.u)*dt,ny=B.y+(g1*vh+r1*B.u)*dt;
+    const hrN=wheelH(nx,ny,g0,g1);
+    const lh=L*ca,hfN=wheelH(nx+g0*lh,ny+g1*lh,g0,g1);
+    const raw=(hrN-B.hr)/dt,rawF=(hfN-B.hf)/dt;
+    // pyörät osuvat kynnyksiin ja kumpareisiin: pyörän pystynopeuden äkillinen muutos jarruttaa
+    if(B.v>0){const dW=raw-B.rvz,dF=frontUp?0:rawF-B.fvz;let l=0;if(dW>0)l+=.2*dW*dW;if(dF>0)l+=.18*dF*dF;
+      if(l>0){B.v=Math.sqrt(Math.max(0,B.v*B.v-l));if(Math.max(dW,dF)>3.5)sfx.thud(Math.max(dW,dF)*2);}}
+    B.rvz=Math.max(-vab-1,Math.min(vab+1,raw));B.fvz=Math.max(-vab-1,Math.min(vab+1,rawF));
+    // jousitus: runko (B.z) on jousen ja vaimentimen varassa; staattinen tila e=0
+    const rel=B.bvz-B.rvz,acc=Math.max(-G,-98*(B.z-hrN)-(rel>0?20:10)*rel); // paluuvaimennus jäykempi kuin puristus
+    B.bvz+=acc*dt;let bz=B.z+B.bvz*dt;
+    if(bz-hrN<-.28){const d=B.rvz-B.bvz;if(d>0&&B.v>0){B.v=Math.sqrt(Math.max(0,B.v*B.v-.5*d*d));if(d>3)sfx.thud(d*2.5);}
+      bz=hrN-.28;B.bvz=Math.max(B.bvz,Math.min(B.rvz,vab*Math.sin(a)+2.5));}
+    if(vab>3&&bz-hrN>.16){
+      // jousitus täysin auki ja pyörät irti maasta
+      B.air=true;B.airT=0;B.x=nx;B.y=ny;B.z=bz;B.vz=B.bvz;B.vh=vh;B.pa=a+B.phi;if(B.phi<=0)B.om+=B.wgS*.6;
+    }else{
+      // maaston kallistuksen muutos: keula nousee, jos pyörän kiertoliike pysähtyy nopeammin kuin painovoima ehtii kääntää sitä
+      const aN=Math.atan2(hfN-hrN,lh),da=aN-a,wg=da/dt,wgS0=B.wgS;
+      B.wgS+=(wg-B.wgS)*Math.min(1,dt*35);
+      if(B.phi>0)B.phi=Math.max(0,B.phi-da);
+      else if(vab>1.5){const req=-(B.wgS-wgS0)/dt,avail=Math.max(0,-tau/I);if(req>avail)B.om+=Math.min(300,req-avail)*dt*.75;}
+      B.wg=wg;B.alpha=aN;B.x=nx;B.y=ny;B.hr=hrN;B.hf=hfN;B.z=bz;
+    }
+    if(slip>0&&thr>.1&&Math.random()<dt*45*slip*WX.dustK)dust(B.x-f0*.3,B.y-f1*.3,B.hr+.2,WX.dust,1,2.5);
+    if(thr>.25&&!B.air&&B.v>-.5&&Math.random()<dt*(10+60*slip)*thr)roost(B.x-f0*.25,B.y-f1*.25,B.hr+.15,f0,f1,slip);
+    collide();if(state!=='play'&&!(state==='watch'&&W.phase!=='done'))return;
+  }
+  // kisan säännöt
+  const s=sFront();
+  if(!ajossa&&s>=0)ajossa=true;
+  if(ajossa)maxS=Math.max(maxS,s);
+  if(Math.abs(B.y)>HALFW+.5){endRun('m_out',true);return;}
+  if(maxS>=FINISH){endRun('m_top',false);return;}
+  if(ajossa&&!B.air){
+    if(B.v<-1.2){endRun('m_back',false);return;}
+    if(Math.abs(B.v)<.3)B.stopT+=dt;else B.stopT=0;
+    if(B.stopT>1.5){endRun('m_stop',false);return;}
+  }
+}
+function collide(){
+  const f0=Math.cos(B.th),f1=Math.sin(B.th),lh=L*Math.cos(B.alpha),fx=B.x+f0*lh,fy=B.y+f1*lh;
+  for(const o of rocks){
+    if(Math.abs(o.x-B.x)>4||Math.abs(o.y-B.y)>4)continue;
+    const df=Math.hypot(fx-o.x,fy-o.y),dr=Math.hypot(B.x-o.x,B.y-o.y);
+    if(df<o.r+.3&&(!o.bf||simT-o.bf>.8)){o.bf=simT;
+      if(B.phi<.12){B.v*=.82;B.th+=(Math.random()-.5)*.35;B.om+=1.2+B.v*.08;}
+      dust(o.x,o.y,o.z+.3,'#999',5,2);sfx.rock();}
+    if(dr<o.r+.3&&(!o.br||simT-o.br>.8)){o.br=simT;sfx.rock();B.v*=.85;B.om+=.9;B.fish+=(Math.random()-.5)*2;}
+  }
+}
+
+/* ================= syöte ================= */
+const ptr=new Map();let leftP=null,rightP=null;
+const K=new Set();
+function updInp(){
+  if(state==='watch')return;
+  let thr=0,brk=0,fb=0,lr=0;
+  if(leftP){const dy=leftP.sy-leftP.y;thr=Math.max(0,Math.min(1,dy/100));brk=Math.max(0,Math.min(1,-dy/70));}
+  fb=1;
+  if(rightP){const dx=(rightP.x-rightP.sx)/70,down=Math.max(0,Math.min(1,(rightP.y-rightP.sy)/100));lr=Math.max(-1,Math.min(1,dx));fb=1-2*down;}
+  if(K.has('KeyW')||K.has('Space'))thr=1;if(K.has('KeyS'))brk=1;
+  if(K.has('ArrowDown'))fb=-1;else if(K.has('KeyN'))fb=0;if(K.has('ArrowLeft'))lr=-1;if(K.has('ArrowRight'))lr=1;
+  inp.thr=thr;inp.brk=brk;inp.fb=fb;inp.lr=-lr;
+  if(window.__bot)window.__bot(inp,B);
+}
+cv.addEventListener('pointerdown',e=>{e.preventDefault();if(SND.a&&SND.a.state!=='running')SND.a.resume().catch(()=>{});const role=e.clientX<Wd*.45?'L':'R';const p={id:e.pointerId,role,sx:e.clientX,sy:e.clientY,x:e.clientX,y:e.clientY};
+  if(role==='L'){if(leftP)ptr.delete(leftP.id);leftP=p;}else{if(rightP)ptr.delete(rightP.id);rightP=p;}ptr.set(e.pointerId,p);try{cv.setPointerCapture(e.pointerId);}catch(_){}},{passive:false});
+cv.addEventListener('pointermove',e=>{const p=ptr.get(e.pointerId);if(p){p.x=e.clientX;p.y=e.clientY;}},{passive:true});
+function up(e){const p=ptr.get(e.pointerId);if(!p)return;ptr.delete(e.pointerId);if(leftP===p)leftP=null;if(rightP===p)rightP=null;}
+cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+addEventListener('keydown',e=>{if(e.target&&e.target.tagName==='INPUT')return;K.add(e.code);if(e.code.startsWith('Arrow')||e.code==='Space')e.preventDefault();if(state==='watch'&&e.code==='Enter')finishWatch(true);else if(state!=='play'&&e.code==='Enter')ovAction();});addEventListener('keyup',e=>K.delete(e.code));
+document.addEventListener('gesturestart',e=>e.preventDefault());
+document.addEventListener('touchmove',e=>{if(!(e.target.closest&&e.target.closest('.kortti')))e.preventDefault();},{passive:false});
+
+/* ================= kamera ================= */
+const ZL=[1,.72,1.4];let zi=0;
+let camX=0,camY=0,camZ=0,s=6,camIX=0,camIY=0;
+function baseScale(){return Math.max(4.5,Math.min(14,Math.min(Wd,Ht)/56));}
+function camTarget(){const la=10+Math.min(14,Math.abs(B.v)*.6);return [B.x+Math.cos(B.th)*la,B.y*.5+Math.sin(B.th)*la];}
+function camInit(){const t=camTarget();camX=t[0];camY=t[1];camZ=H(t[0],t[1]);s=baseScale()*ZL[zi];updCam(0);}
+function updCam(dt){const t=camTarget(),k=Math.min(1,dt*2.5);camX+=(t[0]-camX)*k;camY+=(t[1]-camY)*k;camZ+=(H(t[0],t[1])-camZ)*k;
+  s+=(baseScale()*ZL[zi]-s)*Math.min(1,dt*5);camIX=(camY-camX)*C;camIY=(camX+camY)*S-camZ*VZ;}
+const OY=()=>Ht*(Ht>Wd?.6:.55);
+function toScr(x,y,z){return [((y-x)*C-camIX)*s+Wd/2,((x+y)*S-z*VZ-camIY)*s+OY()];}
+
+/* ================= piirto ================= */
+function drawTerrain(){
+  const vx0=camIX-Wd/2/s,vx1=camIX+Wd/2/s,vy0=camIY-OY()/s,vy1=camIY+(Ht-OY())/s;
+  const budget={n:2};
+  const tx0=Math.floor(vx0/TW),tx1=Math.floor(vx1/TW),ty0=Math.floor(vy0/TW),ty1=Math.floor(vy1/TW);
+  const sz=TW*s+.6;
+  for(let ty=ty0;ty<=ty1;ty++)for(let tx=tx0;tx<=tx1;tx++){const t=getTile(tx,ty,budget);if(!t)continue;
+    ctx.drawImage(t,(tx*TW-camIX)*s+Wd/2,(ty*TW-camIY)*s+OY(),sz,sz);}
+}
+function drawObj(o,p){
+  const [x,y]=p;
+  if(o.t==='tree'){const ts=o.s*s;
+    ctx.fillStyle='rgba(0,0,0,.18)';ctx.beginPath();ctx.ellipse(x+ts*.6,y+ts*.2,ts*1.5,ts*.6,0,0,7);ctx.fill();
+    ctx.fillStyle='#4e3522';ctx.fillRect(x-ts*.18,y-ts*1.4,ts*.36,ts*1.4);ctx.fillStyle='#6b4a30';ctx.fillRect(x-ts*.18,y-ts*1.4,ts*.12,ts*1.4);
+    const tier=(w,b0,t0,c1,c2)=>{ctx.fillStyle=c1;ctx.beginPath();ctx.moveTo(x-w,y-b0);ctx.lineTo(x+w,y-b0);ctx.lineTo(x,y-t0);ctx.fill();
+      ctx.fillStyle=c2;ctx.beginPath();ctx.moveTo(x-w,y-b0);ctx.lineTo(x-w*.15,y-b0+ts*.12);ctx.lineTo(x,y-t0);ctx.fill();};
+    tier(ts*1.65,ts*1.1,ts*3.7,'#2c5831','#3d7243');tier(ts*1.35,ts*2.3,ts*4.9,'#326238','#46804b');tier(ts*1.0,ts*3.5,ts*6.0,'#3a6e3f','#5a9460');}
+  else if(o.t==='rock'){const r=o.r*s,n=7;ctx.fillStyle='#6f6a63';ctx.beginPath();
+    for(let k=0;k<n;k++){const a=k/n*Math.PI*2,q=.8+.3*Math.sin(o.seed+k*2.1);ctx.lineTo(x+Math.cos(a)*r*1.2*q,y-r*.45+Math.sin(a)*r*.8*q*(Math.sin(a)<0?1.3:.7));}
+    ctx.fill();ctx.fillStyle='#a19c94';ctx.beginPath();ctx.ellipse(x-r*.25,y-r*.85,r*.6,r*.35,-.3,0,7);ctx.fill();}
+  else if(o.t==='post'){const h=1.1*s;ctx.strokeStyle='#ddd';ctx.lineWidth=Math.max(1,s*.12);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y-h);ctx.stroke();
+    if(o.prev){const q=toScr(o.prev.x,o.prev.y,o.prev.z);ctx.strokeStyle='#e8382a';ctx.lineWidth=Math.max(1,s*.1);ctx.beginPath();ctx.moveTo(x,y-h*.9);ctx.lineTo(q[0],q[1]-h*.9);ctx.stroke();}}
+  else if(o.t==='sign'){const w=2.2*s,h=1.2*s;ctx.fillStyle='#555';ctx.fillRect(x-1,y-h*2,2,h*2);ctx.fillStyle='#fff';ctx.fillRect(x-w/2,y-h*2.6,w,h);ctx.fillStyle='#111';ctx.font=`700 ${Math.max(9,h*.8)|0}px system-ui`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(o.txt,x,y-h*2.1);ctx.textAlign='left';}
+  else if(o.t==='gate'){const a=toScr(o.x,-HALFW-.5,H(o.x,-HALFW-.5)),b=toScr(o.x,HALFW+.5,H(o.x,HALFW+.5)),h=4.2*s;
+    ctx.strokeStyle='#eee';ctx.lineWidth=Math.max(2,s*.25);ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(a[0],a[1]-h);ctx.moveTo(b[0],b[1]);ctx.lineTo(b[0],b[1]-h);ctx.stroke();
+    ctx.strokeStyle=o.txt==='gate_finish'?'#e8382a':'#2a6fe8';ctx.lineWidth=Math.max(6,s*1.1);ctx.beginPath();ctx.moveTo(a[0],a[1]-h);ctx.lineTo(b[0],b[1]-h);ctx.stroke();
+    ctx.fillStyle='#fff';ctx.font=`800 ${Math.max(10,s*.9)|0}px system-ui`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(tr(o.txt),(a[0]+b[0])/2,(a[1]+b[1])/2-h);ctx.textAlign='left';}
+  else if(o.t==='fan'){const k=o.k*s,near=Math.abs(o.x-B.x)<16&&state!=='menu',wave=SND.cheer>.35||(near&&Math.abs(B.v)>3),ph=simT*7+o.ph,bob=wave?Math.abs(Math.sin(ph))*.14*k:0;
+    ctx.fillStyle='rgba(0,0,0,.16)';ctx.beginPath();ctx.ellipse(x+k*.15,y,k*.55,k*.22,0,0,7);ctx.fill();
+    ctx.lineCap='round';ctx.strokeStyle=o.pants;ctx.lineWidth=Math.max(1,k*.17);ctx.beginPath();
+    ctx.moveTo(x-k*.1,y-k*.85+bob*.4);ctx.lineTo(x-k*.13,y-k*.03);ctx.moveTo(x+k*.1,y-k*.85+bob*.4);ctx.lineTo(x+k*.14,y-k*.03);ctx.stroke();
+    ctx.strokeStyle=o.c;ctx.lineWidth=Math.max(1,k*.13);ctx.beginPath();
+    if(wave){const sw=Math.sin(ph*1.3)*.12*k;ctx.moveTo(x-k*.2,y-k*1.5-bob);ctx.lineTo(x-k*.38+sw,y-k*2.15-bob);ctx.moveTo(x+k*.2,y-k*1.5-bob);ctx.lineTo(x+k*.38-sw,y-k*2.15-bob);}
+    else{ctx.moveTo(x-k*.24,y-k*1.5);ctx.lineTo(x-k*.3,y-k*.95);ctx.moveTo(x+k*.24,y-k*1.5);ctx.lineTo(x+k*.3,y-k*.95);}
+    ctx.stroke();
+    ctx.fillStyle=o.c;ctx.beginPath();ctx.roundRect?ctx.roundRect(x-k*.27,y-k*1.62-bob,k*.54,k*.82,k*.12):ctx.rect(x-k*.27,y-k*1.62-bob,k*.54,k*.82);ctx.fill();
+    ctx.fillStyle=o.sk;ctx.beginPath();ctx.arc(x,y-k*1.86-bob,k*.21,0,7);ctx.fill();
+    ctx.fillStyle=o.h;ctx.beginPath();ctx.arc(x,y-k*1.9-bob,k*.215,Math.PI,0);ctx.fill();
+    if(o.cap){ctx.fillRect(x,y-k*1.93-bob,k*.3,k*.06);}}
+  else if(o.t==='lamp'){const h=9*s;ctx.strokeStyle='#8a9096';ctx.lineWidth=Math.max(1.5,s*.2);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y-h);ctx.stroke();
+    ctx.fillStyle='#2b2f35';ctx.fillRect(x-s*.9,y-h-s*.5,s*1.8,s*.7);ctx.fillStyle='#fffbe0';ctx.fillRect(x-s*.75,y-h-s*.2,s*1.5,s*.3);}
+  else if(o.t==='best'){if(!o.on)return;const h=3*s;ctx.strokeStyle='#fff';ctx.lineWidth=Math.max(1.5,s*.15);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y-h);ctx.stroke();
+    ctx.fillStyle=o.label==='flag_3rd'?'#ffcc33':'#3fd16a';ctx.beginPath();ctx.moveTo(x,y-h);ctx.lineTo(x+2*s,y-h+.6*s);ctx.lineTo(x,y-h+1.2*s);ctx.fill();
+    ctx.fillStyle='#fff';ctx.font=`600 ${Math.max(10,s*.8)|0}px system-ui`;ctx.textBaseline='bottom';ctx.fillText(tr(o.label||'flag_best'),x+2.3*s,y-h+.9*s);}
+}
+function shadeC(hex,k){const n=parseInt(hex.slice(1),16),r=(n>>16)&255,g=(n>>8)&255,b=n&255;return 'rgb('+Math.round(r*k)+','+Math.round(g*k)+','+Math.round(b*k)+')';}
+// kaksinivelinen raaja (lonkka–polvi–nilkka tai olka–kyynär–ranne) tasossa a,b; taivutus suuntaan dir (+1 eteen, -1 taakse/alas)
+function ik(P,Q,l1,l2,dir){const da=Q[0]-P[0],db=Q[1]-P[1],d=Math.max(1e-4,Math.hypot(da,db)),dd=Math.min(d,l1+l2-1e-3);
+  const x=(l1*l1-l2*l2+dd*dd)/(2*dd),h=Math.sqrt(Math.max(0,l1*l1-x*x)),ua=da/d,ub=db/d;
+  let pa=-ub,pb=ua;if(pa*dir<0){pa=-pa;pb=-pb;}
+  return [P[0]+ua*x+pa*h,P[1]+ub*x+pb*h,(P[2]+Q[2])/2];}
+/* pyörä ja kuljettaja omissa koordinaateissa: a eteen takapyörän akselilta, b ylös maasta, c sivulle.
+   near: kummalla puolella (c:n etumerkki) on katsojaa lähempänä oleva kylki. */
+function bikeShape(map,fb,lr,lw,near=1){
+  const q=L-1.9,n=near,C1=SKIN?SKIN.col:BK.col,C2=SKIN?SKIN.col2:BK.col2,JC=SKIN?SKIN.j:'#e8682a';
+  const o0=map(0,0,0),pxm=Math.max(Math.hypot(map(1,0,0)[0]-o0[0],map(1,0,0)[1]-o0[1]),Math.hypot(map(0,1,0)[0]-o0[0],map(0,1,0)[1]-o0[1]));
+  const P=(a,b,c)=>map(a,b,c||0);
+  const Ln=(pts,col,w)=>{ctx.strokeStyle=col;ctx.lineWidth=w;ctx.beginPath();pts.forEach((p0,i)=>{const p=P(p0[0],p0[1],p0[2]);i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]);});ctx.stroke();};
+  const Pg=(pts,col,c=0)=>{ctx.fillStyle=col;ctx.beginPath();pts.forEach((p0,i)=>{const p=P(p0[0],p0[1],p0[2]!=null?p0[2]:c);i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]);});ctx.closePath();ctx.fill();};
+  const Dot=(p0,r,col)=>{const p=P(p0[0],p0[1],p0[2]);ctx.fillStyle=col;ctx.beginPath();ctx.arc(p[0],p[1],Math.max(.8,r*pxm),0,7);ctx.fill();};
+  const wheel=(a,rot,pad,front)=>{
+    // rengas, nappulat, vanne, pinnat
+    ctx.beginPath();for(let k=0;k<=20;k++){const t=k/20*Math.PI*2,p=P(a+RW*.86*Math.cos(t),RW+RW*.86*Math.sin(t),0);k?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]);}
+    ctx.strokeStyle='#1a1a1a';ctx.lineWidth=Math.max(lw*1.7,.24*pxm);ctx.stroke();
+    ctx.strokeStyle=pad?'#8d8d8d':'#2b2b2b';ctx.lineWidth=Math.max(1,(pad?.05:.035)*pxm);ctx.beginPath();
+    const nk=pad?10:16;for(let k=0;k<nk;k++){const t=-rot+k/nk*Math.PI*2,r1=RW*.96,r2=RW*(pad?1.16:1.04),p1=P(a+r1*Math.cos(t),RW+r1*Math.sin(t),0),p2=P(a+r2*Math.cos(t),RW+r2*Math.sin(t),0);ctx.moveTo(p1[0],p1[1]);ctx.lineTo(p2[0],p2[1]);}ctx.stroke();
+    ctx.beginPath();for(let k=0;k<=20;k++){const t=k/20*Math.PI*2,p=P(a+RW*.68*Math.cos(t),RW+RW*.68*Math.sin(t),0);k?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]);}
+    ctx.strokeStyle='#b9bec4';ctx.lineWidth=Math.max(1,.035*pxm);ctx.stroke();
+    ctx.strokeStyle='rgba(200,205,210,.7)';ctx.lineWidth=Math.max(.6,.012*pxm);ctx.beginPath();
+    for(let k=0;k<8;k++){const t=-rot*.5+k/8*Math.PI*2,p1=P(a+.05*Math.cos(t),RW+.05*Math.sin(t),0),p2=P(a+RW*.66*Math.cos(t+.3),RW+RW*.66*Math.sin(t+.3),0);ctx.moveTo(p1[0],p1[1]);ctx.lineTo(p2[0],p2[1]);}ctx.stroke();
+    Dot([a,RW,0],.055,'#6c7076');
+    if(front){ctx.beginPath();for(let k=0;k<=14;k++){const t=k/14*Math.PI*2,p=P(a+.13*Math.cos(t),RW+.13*Math.sin(t),.06*n);k?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]);}ctx.strokeStyle='#9aa0a6';ctx.lineWidth=Math.max(1,.03*pxm);ctx.stroke();}};
+  // kuljettajan mitat
+  const hip=[.95+q+.4*fb,1.0+.14*Math.max(0,fb),lr*.28];
+  const sh=[hip[0]+.2+.3*fb,hip[1]+.5-.12*Math.max(0,fb),lr*.4];
+  const head=[sh[0]+.07,sh[1]+.21,lr*.45];
+  const legs=[-1,1].map(sd=>{const H0=[hip[0],hip[1],hip[2]+.12*sd],F=[1.0+q,.52,.16*sd],K=ik(H0,F,.47,.47,1);return {sd,H0,F,K};});
+  const arms=[-1,1].map(sd=>{const S0=[sh[0],sh[1],sh[2]+.18*sd],Hd=[1.53+q,1.17,.3*sd+lr*.05],E=ik(S0,Hd,.31,.31,-1);E[2]+=.06*sd;return {sd,S0,Hd,E};});
+  const pants='#2a3550',boot='#e9e9e9',bootD='#333';
+  const drawLeg=(g,far)=>{const k=far?.72:1,shin=[(g.K[0]+g.F[0])/2,(g.K[1]+g.F[1])/2,(g.K[2]+g.F[2])/2];
+    Ln([g.H0,g.K],shadeC(pants,k),Math.max(lw*1.6,.16*pxm));
+    Ln([g.K,shin],shadeC(pants,k),Math.max(lw*1.3,.13*pxm));
+    Ln([shin,g.F,[g.F[0]+.12,g.F[1]-.01,g.F[2]]],far?'#b5b5b5':boot,Math.max(lw*1.3,.12*pxm));
+    Ln([[g.F[0]-.04,g.F[1]-.04,g.F[2]],[g.F[0]+.14,g.F[1]-.04,g.F[2]]],bootD,Math.max(1,.04*pxm));
+    Dot(g.K,.075,shadeC('#d9d9d9',k));};
+  const drawArm=(g,far)=>{const k=far?.72:1;Ln([g.S0,g.E,g.Hd],far?shadeC(JC,.72):JC,Math.max(lw*1.1,.1*pxm));Dot(g.Hd,.05,far?'#222':'#2c2c2c');};
+  const fl=legs.find(g=>g.sd===-n),nl=legs.find(g=>g.sd===n),fa=arms.find(g=>g.sd===-n),na=arms.find(g=>g.sd===n);
+  // kaukainen puoli
+  drawLeg(fl,true);
+  Ln([[0,RW,-.08*n],[.85+q,.5,-.08*n]],'#6f747a',Math.max(lw*1.2,.07*pxm));                 // takahaarukka (kaukainen)
+  Ln([[0,RW-.04,-.05*n],[.92+q,.44,-.05*n]],'#3a3a3a',Math.max(1,.025*pxm));               // ketju
+  Ln([[L,RW,-.07*n],[1.6+q,1.05,-.07*n]],'#55595e',Math.max(lw*.9,.06*pxm));              // etuhaarukka (kaukainen)
+  // pyörät
+  wheel(0,B.wr,BK.paddle&&!SKIN?true:BK.paddle,false);
+  wheel(L,B.wr*.97,false,true);
+  // runko ja moottori
+  Ln([[.55+q*.6,.55],[.95+q,.86]],'#f2c230',Math.max(lw*1.1,.07*pxm));                    // takaiskunvaimennin
+  Ln([[1.6+q,1.05],[1.22+q,.46]],'#9ea4aa',Math.max(lw*.9,.06*pxm));                       // runkoputki
+  Pg([[.76+q,.42],[1.16+q,.37],[1.34+q,.6],[1.18+q,.82],[.86+q,.8]],'#3b3e43');           // moottori
+  Ln([[.98+q,.78],[1.06+q,.62],[1.24+q,.66]],'#5d6168',Math.max(1,.03*pxm));
+  Ln([[.85+q,.5,n*.05],[1.22+q,.48,n*.05]],'#2a2c30',Math.max(1,.05*pxm));                // kampikammio
+  Ln([[0,RW,.08*n],[.85+q,.5,.08*n]],'#a9afb5',Math.max(lw*1.3,.08*pxm));                  // takahaarukka (lähempi)
+  // pakoputki
+  Ln([[1.3+q,.66,.12*n],[1.2+q,.5,.15*n],[.85+q,.62,.16*n],[.35+q*.7,.8,.16*n]],'#c4c9ce',Math.max(lw*.9,.06*pxm));
+  Ln([[.4+q*.7,.81,.16*n],[.02+q*.6,.86,.16*n]],'#8e949a',Math.max(lw*1.6,.12*pxm));
+  // muovit: takalokasuoja, sivukilpi numerolla, satula, tankki, jäähdytinsuoja
+  Pg([[-.12+q*.7,.86],[.62+q,.93],[.8+q,.8],[.35+q*.6,.74]],C1,.1*n);
+  Pg([[.42+q*.7,.79],[.76+q,.84],[.74+q,.64],[.5+q*.7,.62]],'#f4f4f4',.13*n);
+  Pg([[.35+q*.7,.95],[1.15+q,.99],[1.15+q,.91],[.42+q*.7,.87]],'#1f1f1f');
+  Pg([[1.02+q,.95],[1.46+q,1.02],[1.38+q,.85],[1.06+q,.86]],C1);
+  Pg([[1.1+q,.99,.12*n],[1.5+q,1.03,.12*n],[1.4+q,.72,.14*n],[1.16+q,.74,.14*n]],C2);
+  // etuhaarukka (lähempi), lokasuoja, numerokilpi
+  Ln([[L,RW,.07*n],[(L+1.6+q)/2,(RW+1.05)/2,.07*n]],'#2f3237',Math.max(lw*1.1,.08*pxm));
+  Ln([[(L+1.6+q)/2,(RW+1.05)/2,.07*n],[1.6+q,1.05,.07*n]],'#d5d9dd',Math.max(lw*.9,.06*pxm));
+  Pg([[L-.28,.7],[L+.02,.71],[L+.24,.64],[L+.02,.66]],C1);
+  Pg([[1.62+q,.96],[1.74+q,.98],[1.7+q,1.16],[1.6+q,1.12]],'#f4f4f4');
+  // kuljettaja: kaukainen käsi, vartalo, lähempi jalka, pää, lähempi käsi, ohjaustanko
+  drawArm(fa,true);
+  Ln([[1.53+q,1.17,-.32],[1.53+q,1.17,.32]],'#1c1c1c',Math.max(1,.04*pxm));
+  Ln([hip,sh],JC,Math.max(lw*2.4,.26*pxm));
+  Ln([[hip[0]+.02,hip[1]+.12,hip[2]],[sh[0]-.03,sh[1]-.08,sh[2]]],shadeC(JC,.8),Math.max(1,.07*pxm));
+  drawLeg(nl,false);
+  // kypärä: kupu, lippa, lasit, leukasuoja
+  const hr=.15;Dot(head,hr,'#f4f4f4');
+  const hp=P(head[0],head[1],head[2]);ctx.fillStyle=JC;ctx.beginPath();ctx.arc(hp[0],hp[1],hr*pxm,Math.PI*.95,Math.PI*1.55);ctx.fill();
+  Pg([[head[0]+.02,head[1]+.11,head[2]],[head[0]+.26,head[1]+.1,head[2]],[head[0]+.06,head[1]+.03,head[2]]],JC);
+  Ln([[head[0]+.07,head[1]+.02,head[2]+.04*n],[head[0]+.15,head[1]+.03,head[2]+.04*n]],'#ffcf3a',Math.max(1,.07*pxm));
+  Ln([[head[0]+.06,head[1]-.09,head[2]],[head[0]+.17,head[1]-.06,head[2]]],'#d0d0d0',Math.max(1,.07*pxm));
+  drawArm(na,false);
+}
+function drawBike(){
+  const f0=Math.cos(B.th),f1=Math.sin(B.th);
+  const base=B.air?B.pa:B.alpha,ang=B.air?B.pa:B.alpha+B.phi;
+  const cb=Math.cos(base),sbb=Math.sin(base),cp=Math.cos(ang),sp=Math.sin(ang);
+  const Fp=[f0*cp,f1*cp,sp],Up=[-f0*sp,-f1*sp,cp],R3=[-f1,f0,0];
+  const E=2.0,z0=B.z;
+  const ax=[B.x-f0*sbb*RW*E,B.y-f1*sbb*RW*E,z0+cb*RW*E];
+  const roll=rider.lr*.22*Math.min(1,Math.abs(B.v)/3+.3);
+  const map=(a,b,c)=>{const bb=b-RW,cc=c+roll*b;return toScr(ax[0]+E*(a*Fp[0]+bb*Up[0]+cc*R3[0]),ax[1]+E*(a*Fp[1]+bb*Up[1]+cc*R3[1]),ax[2]+E*(a*Fp[2]+bb*Up[2]));};
+  const mx=B.x+f0*.9*E,my=B.y+f1*.9*E,mz=H(mx,my),hgt=Math.max(0,z0-H(B.x,B.y));
+  ctx.fillStyle=`rgba(0,0,0,${Math.max(.08,.25-hgt*.03)})`;ctx.beginPath();
+  for(let k=0;k<=12;k++){const t=k/12*Math.PI*2,a=Math.cos(t)*1.3*E,b=Math.sin(t)*.35*E,X=mx+f0*a-f1*b,Y=my+f1*a+f0*b,p=toScr(X,Y,H(X,Y));k?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]);}
+  ctx.fill();
+  ctx.lineCap='round';ctx.lineJoin='round';
+  const nearSide=(-f1+f0)>0?1:-1;
+  bikeShape(map,rider.fb,rider.lr,Math.max(1.2,s*.22),nearSide);
+}
+const RAIN=[];for(let i=0;i<160;i++)RAIN.push({x:Math.random(),y:Math.random(),v:.7+Math.random()*.6});
+let wxT=0;
+let nightC=null;
+function drawNight(){
+  if(!nightC)nightC=document.createElement('canvas');
+  if(nightC.width!==cv.width||nightC.height!==cv.height){nightC.width=cv.width;nightC.height=cv.height;}
+  const g=nightC.getContext('2d');g.setTransform(DPR,0,0,DPR,0,0);g.globalCompositeOperation='source-over';g.clearRect(0,0,Wd,Ht);
+  g.fillStyle='rgba(3,6,18,.8)';g.fillRect(0,0,Wd,Ht);g.globalCompositeOperation='destination-out';
+  const hole=(p,r,a)=>{if(p[0]<-r||p[0]>Wd+r||p[1]<-r||p[1]>Ht+r)return;const gr=g.createRadialGradient(p[0],p[1],0,p[0],p[1],r);gr.addColorStop(0,'rgba(0,0,0,'+a+')');gr.addColorStop(.55,'rgba(0,0,0,'+a*.7+')');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.beginPath();g.arc(p[0],p[1],r,0,7);g.fill();};
+  for(const o of objs)if(o.t==='lamp'){const lx=o.x,ly=o.y*.35;hole(toScr(lx,ly,H(lx,ly)),17*s,.95);}
+  if(state!=='menu'){const f0=Math.cos(B.th),f1=Math.sin(B.th);hole(toScr(B.x+f0*6,B.y+f1*6,B.z),8*s,.8);hole(toScr(B.x,B.y,B.z),4*s,.6);}
+  ctx.drawImage(nightC,0,0,Wd,Ht);
+  ctx.globalCompositeOperation='lighter';
+  for(const o of objs)if(o.t==='lamp'){const p=toScr(o.x,o.y,o.z+9);if(p[0]<-40||p[0]>Wd+40||p[1]<-40||p[1]>Ht+40)continue;const gr=ctx.createRadialGradient(p[0],p[1],0,p[0],p[1],4*s);gr.addColorStop(0,'rgba(255,245,200,.9)');gr.addColorStop(1,'rgba(255,245,200,0)');ctx.fillStyle=gr;ctx.beginPath();ctx.arc(p[0],p[1],4*s,0,7);ctx.fill();}
+  ctx.globalCompositeOperation='source-over';
+}
+function drawWeather(){
+  if(T.night)drawNight();
+  if(WX.tint){ctx.fillStyle=WX.tint;ctx.fillRect(0,0,Wd,Ht);}
+  if(WX.fog){const g=ctx.createLinearGradient(0,0,0,Ht);g.addColorStop(0,'rgba(222,228,231,.92)');g.addColorStop(.42,'rgba(222,228,231,.45)');g.addColorStop(.75,'rgba(222,228,231,.12)');g.addColorStop(1,'rgba(222,228,231,0)');ctx.fillStyle=g;ctx.fillRect(0,0,Wd,Ht);}
+  if(WXK==='sade'){ctx.strokeStyle='rgba(200,215,235,.45)';ctx.lineWidth=1.2;ctx.beginPath();
+    for(const d of RAIN){d.y+=d.v*.025;d.x-=d.v*.006;if(d.y>1){d.y-=1.05;d.x=Math.random()*1.1;}if(d.x<0)d.x+=1.1;
+      const x=d.x*Wd,y=d.y*Ht;ctx.moveTo(x,y);ctx.lineTo(x-4*d.v,y+16*d.v);}ctx.stroke();}
+  if(WXK==='polyinen'){wxT+=.016;ctx.fillStyle='rgba(235,210,160,.10)';for(let i=0;i<6;i++){const x=((i*.37+wxT*.03)%1.2-.1)*Wd,y=(.25+.12*Math.sin(i*2.1+wxT*.4))*Ht;ctx.beginPath();ctx.ellipse(x,y,Wd*.35,Ht*.08,0,0,7);ctx.fill();}}
+}
+function render(){
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  const sky=ctx.createLinearGradient(0,0,0,Ht);const SK=T.night?['#04060d','#141b2e']:WX.sky;sky.addColorStop(0,SK[0]);sky.addColorStop(1,SK[1]);
+  ctx.fillStyle=sky;ctx.fillRect(0,0,Wd,Ht);
+  drawTerrain();
+  // esineet syvyysjärjestyksessä
+  const list=[];
+  for(const o of objs){const p=toScr(o.x,o.y,o.z);if(o.t!=='gate'&&(p[0]<-60||p[0]>Wd+60||p[1]<-20||p[1]>Ht+140))continue;list.push([o.x+o.y,o,p]);}
+  if(state!=='menu')list.push([B.x+B.y+Math.cos(B.th)*1.5,null,null]);
+  list.sort((a,b)=>a[0]-b[0]);
+  for(const [_,o,p] of list){if(o)drawObj(o,p);else drawBike();}
+  for(const q of parts){const p=toScr(q.x,q.y,q.z);if(q.clod){ctx.globalAlpha=1;ctx.fillStyle=q.col;const r=Math.max(1,q.r*s);ctx.fillRect(p[0]-r/2,p[1]-r/2,r,r);continue;}ctx.globalAlpha=Math.max(0,q.life/q.max)*.7;ctx.fillStyle=q.col;ctx.beginPath();ctx.arc(p[0],p[1],q.r*s*(1.6-q.life/q.max),0,7);ctx.fill();}
+  ctx.globalAlpha=1;
+  drawWeather();
+  if(state!=='menu'){drawHud();if(state!=='watch')drawCtrl();}
+}
+
+/* ================= mittaristo ================= */
+const SAFE={t:0,l:0,b:0};
+(function(){const d=document.createElement('div');d.style.cssText='position:fixed;top:env(safe-area-inset-top);left:env(safe-area-inset-left);bottom:env(safe-area-inset-bottom);visibility:hidden';document.body.appendChild(d);const r=()=>{const cs=getComputedStyle(d);SAFE.t=parseFloat(cs.top)||0;SAFE.l=parseFloat(cs.left)||0;SAFE.b=parseFloat(cs.bottom)||0;};r();addEventListener('resize',r);})();
+function fmtT(t){const m=Math.floor(t/60),s2=t-m*60;return m+':'+(s2<10?'0':'')+dec(s2);}
+function fmtM(v){return dec(Math.max(0,v))+' m';}
+function panel(x,y,w,h){ctx.fillStyle='rgba(15,24,19,.6)';ctx.beginPath();ctx.roundRect?ctx.roundRect(x,y,w,h,12):ctx.rect(x,y,w,h);ctx.fill();}
+function drawHud(){
+  const top=10+SAFE.t,lft=10+SAFE.l;
+  panel(lft,top,132,92);
+  ctx.fillStyle='#fff';ctx.font='700 22px system-ui,sans-serif';ctx.textBaseline='top';
+  ctx.fillText(fmtM(ajossa?(state==='watch'&&W.res&&W.res.t==null?Math.min(arcOf(maxS),W.res.d):arcOf(maxS)):0),lft+10,top+7);
+  ctx.font='13.5px system-ui,sans-serif';ctx.fillStyle='#d8e4da';
+  if(mode==='kaveri'&&FR&&state==='play'){ctx.fillText(tr('fr_hud',FR.players[FR.idx].n,FR.round+1),lft+10,top+34);}else if(mode==='sarja'&&SER&&SER.cur){const th=thirdTarget();ctx.fillText(tr('hud_att',Math.min(3,SER.cur.me.length+1),th?(th.t!=null?'🏁':fmtM(th.d)):'–'),lft+10,top+34);}else ctx.fillText(tr('best_x',fmtM(paras)),lft+10,top+34);
+  ctx.fillText(Math.round(Math.abs(B.air?B.vh:B.v)*3.6)+' km/h · '+fmtT(aika),lft+10,top+52);
+  ctx.fillText(tr('hud_grade',Math.round(Math.max(0,gradeAt(-B.x))*100)),lft+10,top+70);
+  const gw=Math.min(170,Wd-(lft+142)-62),gh=92,gx=Math.max(Wd/2-gw/2,lft+142),gy=top;
+  if(gw<110)return;
+  const dang=!B.air&&B.phi>.7,slp=B.slip>0;
+  panel(gx,gy,gw,gh);
+  if(dang||slp){ctx.strokeStyle=dang?'#ff4a3a':'#ffb020';ctx.lineWidth=2.5;ctx.beginPath();ctx.roundRect?ctx.roundRect(gx+1,gy+1,gw-2,gh-2,11):ctx.rect(gx,gy,gw,gh);ctx.stroke();}
+  ctx.save();ctx.beginPath();ctx.rect(gx,gy,gw,gh-16);ctx.clip();
+  const k=Math.min(gw*.6/(L+.3),26),ox=gx+gw*.26,oy=gy+gh-26-(B.air?Math.min(14,(B.z-H(B.x,B.y))*k*.4):0);
+  const ga=B.air?groundAlpha(B.x,B.y,B.th,1):B.alpha,ang=B.air?B.pa:B.alpha+B.phi;
+  const gy0=gy+gh-26;
+  ctx.strokeStyle='#a98a62';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(ox-Math.cos(ga)*200,gy0+Math.sin(ga)*200);ctx.lineTo(ox+Math.cos(ga)*200,gy0-Math.sin(ga)*200);ctx.stroke();
+  const ca=Math.cos(ang),sa=Math.sin(ang),cb=Math.cos(B.air?B.pa:B.alpha),sb=Math.sin(B.air?B.pa:B.alpha);
+  const axX=-sb*RW,axY=cb*RW;
+  const map=(a,b)=>{const bb=b-RW;const X=axX+a*ca-bb*sa,Y=axY+a*sa+bb*ca;return [ox+X*k,oy-Y*k];};
+  ctx.lineCap='round';ctx.lineJoin='round';
+  bikeShape(map,rider.fb,0,1.4,1);
+  ctx.restore();
+  const bw=gw-20,bx=gx+10,by=gy+gh-12,u=Math.min(1,B.use);
+  ctx.fillStyle='rgba(255,255,255,.18)';ctx.fillRect(bx,by,bw,5);
+  ctx.fillStyle=slp?'#ff9a20':(u>.8?'#ffd84a':'#5fd37a');ctx.fillRect(bx,by,bw*u,5);
+  ctx.font='600 12px system-ui,sans-serif';ctx.textBaseline='top';
+  ctx.fillStyle='rgba(255,255,255,.75)';ctx.fillText(WX.ic+' '+Math.round(WX.grip*100)+' %',gx+9,gy+6);
+  if(B.air){ctx.fillStyle='#8fd0ff';ctx.textAlign='right';ctx.fillText(tr('g_air'),gx+gw-10,gy+6);ctx.textAlign='left';}
+  else if(dang){ctx.fillStyle='#ff6a5a';ctx.textAlign='right';ctx.fillText(tr('g_wheelie'),gx+gw-10,gy+6);ctx.textAlign='left';}
+  else if(slp){ctx.fillStyle='#ffb020';ctx.textAlign='right';ctx.fillText(tr('g_slip'),gx+gw-10,gy+6);ctx.textAlign='left';}
+  else{ctx.fillStyle='rgba(255,255,255,.6)';ctx.textAlign='right';ctx.fillText(BK.nimi,gx+gw-10,gy+6);ctx.textAlign='left';}
+}
+function drawCtrl(){
+  ctx.lineCap='round';
+  if(leftP){const x=leftP.sx,y=leftP.sy;
+    ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=14;ctx.beginPath();ctx.moveTo(x,y+70);ctx.lineTo(x,y-100);ctx.stroke();
+    if(inp.thr>0){ctx.strokeStyle='rgba(80,220,120,.9)';ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y-100*inp.thr);ctx.stroke();}
+    if(inp.brk>0){ctx.strokeStyle='rgba(255,80,60,.9)';ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y+70*inp.brk);ctx.stroke();}
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x,Math.max(y-100,Math.min(y+70,leftP.y)),16,0,7);ctx.fill();}
+  else{const x=60+SAFE.l,y=Ht-90-SAFE.b;ctx.fillStyle='rgba(20,30,25,.35)';ctx.beginPath();ctx.arc(x,y,32,0,7);ctx.fill();ctx.fillStyle='rgba(255,255,255,.9)';ctx.font='600 12px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(tr('c_thr'),x,y-6);ctx.font='11px system-ui';ctx.fillText(tr('c_brake'),x,y+9);ctx.textAlign='left';}
+  if(rightP){const x=rightP.sx,y=rightP.sy;
+    const gr=ctx.createLinearGradient(0,y,0,y+100);gr.addColorStop(0,'rgba(255,180,40,.55)');gr.addColorStop(.5,'rgba(255,255,255,.3)');gr.addColorStop(1,'rgba(255,80,60,.6)');
+    ctx.strokeStyle=gr;ctx.lineWidth=16;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y+100);ctx.stroke();
+    ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x-70,y+50);ctx.lineTo(x+70,y+50);ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,.9)';ctx.beginPath();ctx.arc(x-inp.lr*70,y+(1-inp.fb)*50,20,0,7);ctx.fill();}
+  else{const x=Wd-70-SAFE.l,y=Ht-90-SAFE.b;ctx.fillStyle='rgba(20,30,25,.3)';ctx.beginPath();ctx.arc(x,y,34,0,7);ctx.fill();ctx.fillStyle='rgba(255,255,255,.9)';ctx.font='600 12px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(tr('c_pos'),x,y);ctx.font='11px system-ui';ctx.fillText(tr('c_fwd'),x,y-23);ctx.fillText(tr('c_back'),x,y+23);ctx.textAlign='left';}
+}
+
+/* ================= valikot ================= */
+/* ================= kisasarja =================
+   Jokaisessa luokassa ajetaan sarja: yksi kisa kullakin radalla. Kisassa on kolme yritystä ja paras ratkaisee.
+   Sijoituksista saa pisteitä; sarjan kolme parasta nousevat seuraavaan luokkaan (125cc → 500cc → Open).
+   Sää arvotaan jokaiselle yritykselle ja voi vaihtua kesken kisan; se vaikuttaa myös kilpailijoiden tuloksiin. */
+const OPP_NAMES=['Kalle Vuorinen','Jonas Brandt','Luca Ferrero','Pierre Dumont','Sami Hakala','Erik Lindqvist','Tomás Novák','Felix Huber','Joni Lahti','Marco Bellini','Antti Rinne'];
+const ME='Sinä';
+const POINTS=[25,22,20,18,16,15,14,13,12,11,10,9];
+const POT={niitty:[.86,.93,.97],kaksoismuuri:[.8,.9,1],mahdoton:[.55,.8,.9],seina:[.78,.88,.95],pitka:[.45,.7,.85],valot:[.8,.9,.97],hyppyri:[.5,.66,.9],louhos:[.55,.7,.85]};
+const SKILL=[[.15,.78],[.3,.9],[.4,.97]];
+function prng(seed){let a=seed>>>0;return()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296;};}
+let SER=null;try{SER=JSON.parse(lsGet('mkSarja')||'null');}catch(e){SER=null;}
+let mode='harjoitus',menuTab=lsGet('mkValikko')||'sarja',restartArm=false;
+let wxChoice=lsGet('mkSaa')||'vaihtuva',nextWX=wxChoice==='vaihtuva'?pickW(WX_START,Math.random):wxChoice;
+const CLASS_TRACKS=[['niitty','valot','seina','louhos'],['kaksoismuuri','hyppyri','mahdoton','valot'],['mahdoton','pitka','hyppyri','kaksoismuuri']];
+function serTracks(){return (SER.tl||['niitty','kaksoismuuri','mahdoton','seina']).map(id=>TRACKS.find(t=>t.id===id));}
+function saveSer(){lsSet('mkSarja',JSON.stringify(SER));}
+function newSeries(ci){const seed=(Date.now()*7919)%2147483647,r=prng(seed),[lo,hi]=SKILL[ci];
+  const names=OPP_NAMES.slice().sort(()=>r()-.5);
+  const opp=names.map((n,i)=>({n,sk:Math.min(.99,Math.max(.05,lo+(hi-lo)*(i/(names.length-1))+(r()-.5)*.08))}));
+  SER={ci,race:0,phase:'race',seed,opp,pts:{},races:[],cur:null,tl:CLASS_TRACKS[ci]};SER.cur=makeRace(0);saveSer();}
+function raceWx(ri){const r=prng(SER.seed+ri*7+3),w=[pickW(WX_START,r)];for(let k=1;k<3;k++)w.push(pickW(WX_NEXT[w[k-1]],r));return w;}
+function makeRace(ri){const t=serTracks()[ri],r=prng(SER.seed+ri*101),P=POT[t.id][SER.ci],wx=raceWx(ri);
+  const opp=SER.opp.map(o=>{const at=[];for(let k=0;k<3;k++){const wf=1+.28*(Math.min(1.07,WEATHERS[wx[k]].grip)-1);
+      let f=P*(.55+.5*o.sk)*(.92+.12*r())*wf;
+      if(r()<.18)f*=.25+.6*r();
+      at.push(f>=1?{d:t.pituus,t:t.pituus/(8+6*o.sk)*(.95+.1*r())/wf}:{d:Math.max(3,f*t.pituus),t:null});}return at;});
+  return {track:t.id,opp,me:[],wx};}
+function curWx(){const c=SER.cur;if(!c.wx){c.wx=raceWx(SER.race);saveSer();}return c.wx[Math.min(2,c.me.length)];}
+function cmpRes(a,b){if(!a&&!b)return 0;if(!a)return 1;if(!b)return -1;if(a.t!=null&&b.t!=null)return a.t-b.t;if(a.t!=null)return -1;if(b.t!=null)return 1;return b.d-a.d;}
+function bestOf(arr){let b=null;for(const x of arr)if(cmpRes(x,b)<0)b=x;return b;}
+function fmtRes(x){return !x?'–':(x.t!=null?'🏁 '+fmtT(x.t):fmtM(x.d));}
+function raceTable(k){const c=SER.cur,rows=SER.opp.map((o,i)=>({n:o.n,b:bestOf(c.opp[i].slice(0,k))}));rows.push({n:ME,b:bestOf(c.me),me:true});rows.sort((a,b)=>cmpRes(a.b,b.b)||(a.me?-1:b.me?1:0));return rows;}
+function thirdTarget(){if(!SER||!SER.cur)return null;const k=Math.min(3,SER.cur.me.length+1),bs=SER.opp.map((o,i)=>bestOf(SER.cur.opp[i].slice(0,k))).sort(cmpRes);return bs[2]||null;}
+function standings(){const rows=[ME,...SER.opp.map(o=>o.n)].map(n=>({n,p:SER.pts[n]||0,w:SER.races.filter(r=>r.order[0]===n).length,me:n===ME}));rows.sort((a,b)=>b.p-a.p||b.w-a.w||(a.me?-1:b.me?1:0));return rows;}
+function recordAttempt(res){const c=SER.cur;c.me.push(res);
+  if(c.me.length>=3){const rows=raceTable(3);rows.forEach((r,i)=>{SER.pts[r.n]=(SER.pts[r.n]||0)+POINTS[i];});
+    SER.races.push({track:c.track,order:rows.map(r=>r.n),res:rows.map(r=>r.b)});SER.phase='raceDone';}
+  saveSer();}
+function nextRace(){if(SER.race<serTracks().length-1){SER.race++;SER.cur=makeRace(SER.race);SER.phase='race';saveSer();showOv('menu');}
+  else{SER.phase='seriesDone';saveSer();showOv('sarjaTulos');}}
+function myPos(){return standings().findIndex(r=>r.me)+1;}
+function tableHTML(rows,opts={}){let h='<table class="taulu">';const lyhyt=innerHeight<560&&rows.length>6,mi=rows.findIndex(r=>r.me);
+  rows.forEach((r,i)=>{
+    if(lyhyt&&i>=4&&i!==mi){if(i===4||(i===mi+1&&mi>4))h+='<tr><td></td><td>…</td><td></td>'+(opts.gain?'<td></td>':'')+'</tr>';return;}
+    h+='<tr class="'+(r.me?'mina ':'')+(i===2&&rows.length>3?'raja':'')+'"><td>'+ord(i+1)+'</td><td>'+(r.me?tr('you'):r.n)+'</td><td class="oik">'+(opts.pts?r.p+' '+tr('pts'):fmtRes(r.b))+'</td>'+(opts.gain?'<td class="oik pieni">+'+POINTS[i]+'</td>':'')+'</tr>';});
+  return h+'</table>';}
+function ladderHTML(){return '<div class="tikkaat">'+CLASSES.map((c,i)=>'<span class="'+(SER&&i===SER.ci?'nyt':(SER&&i<SER.ci?'ohi':''))+'">'+(SER&&i<SER.ci?'✓ ':'')+c.nimi+'</span>').join('<i>›</i>')+'</div>';}
+function wxForecastHTML(){const c=SER.cur;if(!c.wx)curWx();const n=c.me.length;
+  return '<div class="ennuste">'+c.wx.map((k,i)=>'<span class="'+(i===n?'nyt':i<n?'ohi':'')+'" title="'+tr('wx_'+k)+'">'+WEATHERS[k].ic+'<small>'+(i+1)+'</small></span>').join('')+'</div>';}
+function seriesStatusHTML(){
+  if(!SER)return ladderHTML()+tr('series_intro');
+  const c=SER.cur,t=TRACKS.find(q=>q.id===c.track);
+  let h=ladderHTML()+'<p><b>'+tr('ser_head',CLASSES[SER.ci].nimi,SER.race+1,serTracks().length,trackName(t))+'</b><br>'+(SER.phase==='race'?tr('attempt_n',c.me.length+1)+' · '+wxText(curWx()):tr('race_done'))+'</p>';
+  if(SER.phase==='race')h+=wxForecastHTML();
+  if(c.me.length>0)h+='<p class="pieni">'+tr('race_status')+'</p>'+tableHTML(raceTable(c.me.length));
+  if(SER.races.length)h+='<p class="pieni">'+tr('champ_table')+'</p>'+tableHTML(standings(),{pts:1});
+  return h;}
+
+/* ================= valikot ================= */
+/* ================= katselu =================
+   Ennen jokaista omaa kisayritystä näytetään siihen asti paras suoritus. Kilpailijan ajo ajetaan oikealla fysiikalla
+   automaattiohjauksella, joka vie hänet täsmälleen tulokseensa asti. Oma paras näytetään tallennettuna uusintana. */
+let REC=[],recT=0,SKIN=null;const BESTREC={};
+const W={on:false,kind:null,name:'',res:null,mine:false,target:0,phase:'',t:0,rec:null,ending:'',fT:0,thr:1,timer:0};
+const katso=document.getElementById('katso'),katsoT=document.getElementById('katsoT'),ohita=document.getElementById('ohita');
+const SKINS=[['#2a6fe8','#1d4fb0','#f2c230'],['#8a3ad0','#6a2aa0','#ffffff'],['#30a050','#1f7a3a','#222222'],['#ff7a20','#d65a10','#2a6fe8'],
+  ['#e8e8e8','#bbbbbb','#e8382a'],['#f2c230','#c99a10','#222222'],['#333333','#555555','#ff7a20'],['#e8382a','#b02010','#ffffff']];
+function skinFor(name){let h=7;for(const c of name)h=(Math.imul(h,31)+c.charCodeAt(0))>>>0;const k=SKINS[h%SKINS.length];return {col:k[0],col2:k[1],j:k[2]};}
+function recKey(){return SER.seed+'_'+SER.race;}
+function bestSoFar(){const c=SER.cur,k=c.me.length+1;let best=null,who=null,mine=false;
+  SER.opp.forEach((o,i)=>{const b=bestOf(c.opp[i].slice(0,k));if(cmpRes(b,best)<0){best=b;who=o.n;}});
+  const mb=bestOf(c.me);if(mb&&cmpRes(mb,best)<=0&&BESTREC[recKey()]){best=mb;who=ME;mine=true;}
+  return best?{best,who,mine}:null;}
+function setupFlag(){const th=thirdTarget();bestObj.on=!!th&&th.t==null;bestObj.label='flag_3rd';if(th)bestObj.x=-sOfArc(Math.min(LEN,th.d));bestObj.z=H(bestObj.x,bestObj.y);}
+function startSeriesTurn(){
+  const bs=bestSoFar();if(!bs){startSeriesRun();return;}
+  mode='sarja';const c=CLASSES[SER.ci],t=TRACKS.find(q=>q.id===SER.cur.track);if(BK!==c)setBike(c);if(T!==t)setTrack(t);
+  setWx(curWx());ov.classList.add('piilo');ptr.clear();leftP=rightP=null;unlockAudio();
+  reset();setupFlag();
+  Object.assign(W,{on:true,name:bs.who,res:bs.best,mine:bs.mine,t:0,fi:0,phase:'climb',fT:0,thr:1});
+  if(bs.mine){W.kind='replay';W.rec=BESTREC[recKey()];SKIN=null;}
+  else{W.kind='puppet';SKIN=skinFor(bs.who);W.target=bs.best.t!=null?LEN+10:bs.best.d;
+    W.ending=gradeArc(W.target)>.55?(Math.random()<.5?'stall':'flip'):(Math.random()<.65?'flip':'stall');}
+  katsoT.textContent=bs.mine?tr('watch_mine',fmtRes(bs.best)):tr('watch_best',bs.who,fmtRes(bs.best));
+  ohita.textContent=tr('skip');katso.classList.remove('piilo');
+  state='watch';SND.crashed=false;sfx.start();}
+function finishWatch(startMine){clearTimeout(W.timer);W.on=false;SKIN=null;katso.classList.add('piilo');parts.length=0;
+  if(startMine)startSeriesRun();}
+function endWatch(msg,crashed){if(W.phase==='done')return;W.phase='done';
+  if(crashed){dust(B.x,B.y,B.z+.5,WX.dust,30,5);sfx.crash();}
+  katsoT.textContent=(W.mine?tr('you'):W.name)+' · '+fmtRes(W.res)+' – '+tr(msg);
+  W.timer=setTimeout(()=>{if(state!=='watch')return;katsoT.textContent=tr('your_turn');W.timer=setTimeout(()=>{if(state==='watch')finishWatch(true);},900);},1500);}
+// kilpailija ei kaadu ennen omaa tulostaan; tuloksen kohdalla ajo päättyy kuten oikeasti
+function watchCrash(msg,crashed){
+  if(W.phase==='climb'){if(msg==='m_top'){endWatch(msg,false);return;}
+    B.phi=Math.min(B.phi,.3);B.om=0;B.u=0;B.v=Math.max(B.v,2.5);B.stopT=0;B.th=Math.PI;
+    B.y=Math.max(-HALFW+1.5,Math.min(HALFW-1.5,B.y));return;}
+  if(W.phase==='finale')endWatch(msg,crashed);}
+function autopilot(){
+  const err=((B.th-Math.PI+Math.PI*3)%(Math.PI*2))-Math.PI;
+  inp.lr=Math.max(-1,Math.min(1,B.y*.15-err*2.5));inp.brk=0;
+  if(W.phase==='finale'){if(W.ending==='flip'){inp.thr=1;inp.fb=-1;}else{inp.thr=0;inp.fb=.3;}return;}
+  inp.fb=Math.max(-1,Math.min(1,.5+(B.phi-.2)*3));
+  let thr=W.thr;if(B.use>1)thr*=.97;else thr=Math.min(1,thr+.02);if(B.phi>.4)thr*=.9;W.thr=thr;
+  if(B.air){thr=B.pa>.9?0:.6;inp.fb=0;}
+  inp.thr=thr;}
+function puppetAssist(dt){
+  if(W.phase==='finale'){W.fT+=dt;if(W.fT>5)endWatch('m_stop',false);return;}
+  if(W.phase!=='climb')return;
+  if(B.phi>.55){B.phi=.55;B.om=Math.min(B.om,0);}
+  const a=arcOf(sFront());
+  if(!B.air&&B.v<2.5&&a<W.target-1)B.v+=4*dt;
+  if(Math.abs(B.y)>HALFW-1.2){B.y=Math.sign(B.y)*(HALFW-1.2);B.u=0;}
+  if(W.res.t==null&&a>=W.target-(W.ending==='stall'?1.4:.6)){W.phase='finale';W.fT=0;}
+  if(W.t>70)finishWatch(true);}
+function replayStep(dt){const fr=W.rec.frames;if(!fr||!fr.length){endWatch(W.rec?W.rec.msg:'m_stop',false);return;}
+  W.t+=dt;let i=W.fi||0;while(i<fr.length-2&&fr[i+1].t<=W.t)i++;W.fi=i;
+  const a=fr[i],b=fr[Math.min(i+1,fr.length-1)],k=b.t>a.t?Math.max(0,Math.min(1,(W.t-a.t)/(b.t-a.t))):0,l=(p,q)=>p+(q-p)*k;
+  B.x=l(a.x,b.x);B.y=l(a.y,b.y);B.z=l(a.z,b.z);B.hr=l(a.hr,b.hr);B.th=l(a.th,b.th);B.alpha=l(a.al,b.al);B.phi=l(a.ph,b.ph);B.pa=l(a.pa,b.pa);
+  B.air=!!a.air;B.v=l(a.v,b.v);B.vh=l(a.vh,b.vh);B.wr=l(a.wr,b.wr);B.slip=a.sl;rider.fb=l(a.fb,b.fb);rider.lr=l(a.lr,b.lr);inp.thr=a.thr;
+  maxS=a.ms;ajossa=!!a.aj;aika=a.ak;
+  if(W.t>=fr[fr.length-1].t)endWatch(W.rec.msg,W.rec.crashed);}
+function recordFrame(dt){recT+=dt;if(REC.length<6000)REC.push({t:recT,x:B.x,y:B.y,z:B.z,hr:B.hr,th:B.th,al:B.alpha,ph:B.phi,pa:B.pa,air:B.air?1:0,v:B.v,vh:B.vh||0,
+  fb:rider.fb,lr:rider.lr,wr:B.wr,sl:B.slip,thr:inp.thr,ms:maxS,aj:ajossa?1:0,ak:aika});}
+ohita.addEventListener('click',()=>{if(state==='watch')finishWatch(true);});
+ohita.addEventListener('pointerdown',e=>e.stopPropagation());
+
+/* ================= kaverikisa =================
+   2–6 pelaajaa ajaa vuorotellen samalla laitteella. Kolme kierrosta; jokaisen paras yritys ratkaisee.
+   Sama sää koskee kaikkia saman kierroksen ajajia. */
+const P_SK=[{col:'#d9312b',col2:'#e8432f',j:'#e8682a'},{col:'#2a6fe8',col2:'#1d4fb0',j:'#f2c230'},{col:'#30a050',col2:'#1f7a3a',j:'#ffffff'},
+  {col:'#8a3ad0',col2:'#6a2aa0',j:'#ffffff'},{col:'#f2c230',col2:'#c99a10',j:'#222222'},{col:'#ff7a20',col2:'#d65a10',j:'#2a6fe8'}];
+let FR=null,frNames=null,frCfg=null;
+try{frNames=JSON.parse(lsGet('mkKaverit')||'null');frCfg=JSON.parse(lsGet('mkKaveriAsetus')||'null');}catch(e){}
+if(!Array.isArray(frNames)||frNames.length<2)frNames=['',''];
+frCfg=Object.assign({track:'niitty',cls:'125',wx:'vaihtuva'},frCfg||{});
+function frSave(){lsSet('mkKaverit',JSON.stringify(frNames));lsSet('mkKaveriAsetus',JSON.stringify(frCfg));}
+function esc(t){return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function frName(i){return (frNames[i]||'').trim()||tr('fr_player',i+1);}
+function frStart(){
+  const wx=[];if(frCfg.wx==='vaihtuva'){wx.push(pickW(WX_START,Math.random));for(let k=1;k<3;k++)wx.push(pickW(WX_NEXT[wx[k-1]],Math.random));}else wx.push(frCfg.wx,frCfg.wx,frCfg.wx);
+  FR={players:frNames.map((n,i)=>({n:frName(i),skin:P_SK[i%P_SK.length]})),track:frCfg.track,cls:frCfg.cls,wx,round:0,idx:0,res:frNames.map(()=>[]),done:false};
+  showOv('kaveriVuoro');}
+function frRows(){return FR.players.map((p,i)=>({n:p.n,pi:i,b:bestOf(FR.res[i]),me:!FR.done&&i===FR.idx})).sort((a,b)=>cmpRes(a.b,b.b));}
+function frTable(rows){let h='<table class="taulu">';rows.forEach((r,i)=>{const pi=r.pi,att=FR.res[pi].map(fmtRes).join(' · ');
+  h+='<tr class="'+(r.me?'mina':'')+'"><td>'+ord(i+1)+'</td><td><span class="pv" style="background:'+FR.players[pi].skin.col+'"></span>'+esc(r.n)+'<div class="pieni" style="margin:0!important">'+(att||'&nbsp;')+'</div></td><td class="oik">'+fmtRes(r.b)+'</td></tr>';});
+  return h+'</table>';}
+function frLine(){const t=TRACKS.find(q=>q.id===FR.track),c=CLASSES.find(q=>q.id===FR.cls);return trackName(t)+' · '+c.nimi;}
+function frNextHTML(){const p=FR.players[FR.idx],w=FR.wx[FR.round];return '<p>'+tr('fr_next',esc(p.n),FR.round+1)+'<br><span style="font-size:13px">'+wxText(w)+'</span></p>';}
+function startFriendRun(){mode='kaveri';const c=CLASSES.find(q=>q.id===FR.cls),t=TRACKS.find(q=>q.id===FR.track);
+  if(BK!==c)setBike(c);if(T!==t)setTrack(t);startRun();}
+function frRecord(res){FR.res[FR.idx].push(res);FR.idx++;if(FR.idx>=FR.players.length){FR.idx=0;FR.round++;}if(FR.round>=3)FR.done=true;}
+const ovB2=document.getElementById('ovB2'),ov=document.getElementById('ov'),ovT=document.getElementById('ovT'),ovP=document.getElementById('ovP'),ovB=document.getElementById('ovB');
+let ovMode='menu';
+function langHTML(){return '<div class="kielet">'+['fi','en','de'].map(l=>'<button class="kieli'+(l===LANG?' valittu':'')+'" data-l="'+l+'">'+l.toUpperCase()+'</button>').join('')+'</div>';}
+function showOv(m){ovMode=m;ov.classList.remove('piilo');
+  ovB2.style.display=(m==='end'||m==='sarjaYritys'||m==='kisaTulos'||m==='sarjaTulos'||m==='kaveriVuoro'||m==='kaveriYritys'||m==='kaveriTulos')?'':'none';
+  ovB2.textContent=m==='end'?tr('change_track'):tr('menu');
+  if(m==='menu'){ovT.textContent=tr('title');
+    let h=langHTML()+'<div class="tabit"><button class="tab'+(menuTab==='sarja'?' valittu':'')+'" data-tab="sarja">'+tr('tab_series')+'</button><button class="tab'+(menuTab==='kaveri'?' valittu':'')+'" data-tab="kaveri">'+tr('tab_friends')+'</button><button class="tab'+(menuTab==='harjoitus'?' valittu':'')+'" data-tab="harjoitus">'+tr('tab_practice')+'</button></div>';
+    if(menuTab==='kaveri'){
+      ovB.textContent=tr('fr_start');
+      h+='<p style="font-size:14px">'+tr('fr_intro')+'</p><div class="pelaajat">';
+      frNames.forEach((n,i)=>{h+='<div class="pel"><span class="pv" style="background:'+P_SK[i%P_SK.length].col+'"></span><input class="pnimi" data-i="'+i+'" value="'+esc(n)+'" placeholder="'+esc(tr('fr_player',i+1))+'" maxlength="14">'+(frNames.length>2?'<button class="pois" data-i="'+i+'">✕</button>':'')+'</div>';});
+      h+='</div>'+(frNames.length<6?'<p><button class="pikku" id="lisaa">+ '+tr('fr_add')+'</button></p>':'');
+      h+='<div class="valinnat"><label>'+tr('fr_track')+'<select id="frRata">'+TRACKS.map(t=>'<option value="'+t.id+'"'+(t.id===frCfg.track?' selected':'')+'>'+esc(trackName(t))+'</option>').join('')+'</select></label>'
+        +'<label>'+tr('class_label').replace(':','')+'<select id="frLuokka">'+CLASSES.map(c=>'<option value="'+c.id+'"'+(c.id===frCfg.cls?' selected':'')+'>'+c.nimi+'</option>').join('')+'</select></label>'
+        +'<label>'+tr('weather_label').replace(':','')+'<select id="frSaa">'+['vaihtuva',...WX_KEYS].map(k=>'<option value="'+k+'"'+(k===frCfg.wx?' selected':'')+'>'+(k==='vaihtuva'?'🎲':WEATHERS[k].ic)+' '+tr('wx_'+k)+'</option>').join('')+'</select></label></div>';
+    }else if(menuTab==='sarja'){
+      h+=seriesStatusHTML();
+      if(SER)h+='<p><button class="pikku" id="alusta2">'+(restartArm?tr('restart_sure'):tr('restart'))+'</button></p>';
+      ovB.textContent=!SER?tr('start_series'):SER.phase==='race'?tr('ride_attempt',SER.cur.me.length+1):SER.phase==='raceDone'?tr('race_results'):tr('series_results');
+    }else{
+      ovB.textContent=tr('ride');
+      h+='<p style="font-size:14px">'+tr('practice_intro')+'</p><div class="radat">';
+      for(const t of TRACKS){const st=trackStats(t),b=loadBest(t,BK);
+        h+='<button class="rata'+(t===T?' valittu':'')+'" data-id="'+t.id+'"><b>'+trackName(t)+'</b><span>'+tr('trk_stats',fmtM(t.pituus),Math.round(st.rise),Math.round(st.max*100))+'</span><span class="ka">'+(b.d?tr('best_x',fmtM(b.d)+(b.t?' · '+fmtT(b.t):'')):tr('not_ridden'))+'</span></button>';}
+      h+='</div><p style="font-size:14px;margin-top:0"><b>'+trackName(T)+':</b> '+tr('dsc_'+T.id)+'</p><p style="font-size:14px;margin:4px 0 0">'+tr('class_label')+'</p><div class="radat luokat">';
+      for(const c of CLASSES)h+='<button class="rata luokka'+(c===BK?' valittu':'')+'" data-c="'+c.id+'"><b>'+c.nimi+'</b><span>'+c.hv+' '+tr('hp')+' · '+c.paino+' kg</span><span>'+tr('wheelbase',dec(c.L,2))+'</span></button>';
+      h+='</div><p style="font-size:14px;margin-top:0"><b>'+BK.nimi+':</b> '+tr('cls_'+BK.id)+'</p>';
+      h+='<p style="font-size:14px;margin:4px 0 0">'+tr('weather_label')+'</p><div class="saat">';
+      for(const k of ['vaihtuva',...WX_KEYS])h+='<button class="saa'+(k===wxChoice?' valittu':'')+'" data-w="'+k+'">'+(k==='vaihtuva'?'🎲':WEATHERS[k].ic)+'<small>'+tr('wx_'+k)+'</small></button>';
+      h+='</div><p style="font-size:13px;margin-top:0">'+tr('next_wx',wxText(nextWX))+'</p>';
+    }
+    h+=tr('help');
+    ovP.innerHTML=h;
+    ovP.querySelectorAll('.kieli').forEach(el=>el.addEventListener('click',()=>{LANG=el.dataset.l;lsSet('mkKieli',LANG);applyLang();showOv('menu');}));
+    ovP.querySelectorAll('.pnimi').forEach(el=>el.addEventListener('input',()=>{frNames[+el.dataset.i]=el.value;frSave();}));
+    ovP.querySelectorAll('.pois').forEach(el=>el.addEventListener('click',()=>{frNames.splice(+el.dataset.i,1);frSave();showOv('menu');}));
+    const li=document.getElementById('lisaa');if(li)li.addEventListener('click',()=>{if(frNames.length<6)frNames.push('');frSave();showOv('menu');});
+    [['frRata','track'],['frLuokka','cls'],['frSaa','wx']].forEach(([id,k])=>{const el=document.getElementById(id);if(el)el.addEventListener('change',()=>{frCfg[k]=el.value;frSave();});});
+    ovP.querySelectorAll('.tab').forEach(el=>el.addEventListener('click',()=>{menuTab=el.dataset.tab;lsSet('mkValikko',menuTab);restartArm=false;showOv('menu');}));
+    ovP.querySelectorAll('.saa').forEach(el=>el.addEventListener('click',()=>{wxChoice=el.dataset.w;lsSet('mkSaa',wxChoice);nextWX=wxChoice==='vaihtuva'?pickW(WX_NEXT[nextWX]||WX_START,Math.random):wxChoice;setWx(nextWX);showOv('menu');}));
+    const a2=document.getElementById('alusta2');if(a2)a2.addEventListener('click',()=>{if(!restartArm){restartArm=true;showOv('menu');return;}restartArm=false;SER=null;lsSet('mkSarja','null');showOv('menu');});
+    ovP.querySelectorAll('.luokka').forEach(el=>el.addEventListener('click',()=>{const c=CLASSES.find(q=>q.id===el.dataset.c);if(c&&c!==BK){setBike(c);reset();}showOv('menu');}));
+    ovP.querySelectorAll('.rata:not(.luokka)').forEach(el=>el.addEventListener('click',()=>{const t=TRACKS.find(q=>q.id===el.dataset.id);if(t&&t!==T){setTrack(t);reset();}showOv('menu');}));
+    if(menuTab==='sarja'&&SER&&SER.phase==='race')setWx(curWx());else if(menuTab!=='sarja')setWx(nextWX);}
+  else if(m==='kaveriVuoro'){ovT.textContent=tr('fr_title');ovB.textContent=tr('fr_ride',FR.players[FR.idx].n);
+    ovP.innerHTML='<p>'+frLine()+'</p>'+frNextHTML()+frTable(frRows());}
+  else if(m==='kaveriYritys'){const L0=FR.last,p=FR.players[L0.pi];ovT.textContent=tr(endMsg);
+    ovP.innerHTML='<p style="margin-top:0"><span class="pv" style="background:'+p.skin.col+'"></span><b>'+esc(p.n)+'</b></p><div class="iso">'+fmtRes(L0.res)+'</div>'
+      +(FR.done?'':'<p><b>'+tr('fr_pass')+'</b></p>'+frNextHTML())+frTable(frRows());
+    ovB.textContent=FR.done?tr('fr_results'):tr('fr_ride',FR.players[FR.idx].n);}
+  else if(m==='kaveriTulos'){const rows=frRows();ovT.textContent=tr('fr_winner',rows[0].n);ovB.textContent=tr('fr_again');
+    ovP.innerHTML='<p>'+frLine()+'</p>'+frTable(rows);}
+  else if(m==='end'){const r=lastResult;ovT.textContent=tr(endMsg);ovB.textContent=tr('new_attempt');
+    ovP.innerHTML='<div class="iso">'+fmtM(r.tulos)+'</div>'+(r.valmis?'<p>'+tr('time_x',fmtT(r.aika))+'</p>':'<p>'+tr('left_to_top',fmtM(LEN-r.tulos))+'</p>')+(r.uusi?'<p><b>'+tr('new_record')+'</b></p>':'<p>'+tr('best_x',fmtM(paras)+(parasAika?' · '+fmtT(parasAika):''))+'</p>')
+      +'<p style="font-size:13px">'+trackName(T)+' · '+BK.nimi+' · '+WX.ic+' · '+tr('attempts_n',yritykset)+'</p><p style="font-size:13px">'+tr('next_wx',wxText(nextWX))+'</p>';}
+  else if(m==='sarjaYritys'){const c=SER.cur,n=c.me.length,rows=raceTable(n),pos=rows.findIndex(q=>q.me)+1;
+    ovT.textContent=tr(endMsg);
+    ovB.textContent=n<3?tr('attempt_n',n+1):tr('race_results');
+    ovP.innerHTML='<div class="iso">'+fmtRes(c.me[n-1])+'</div><p>'+tr('attempt_line',n,trackName(serTracks()[SER.race]),CLASSES[SER.ci].nimi)+'</p><p>'+tr('you_now',ord(pos))+(pos<=3?' 👍':'')+'</p>'
+      +(n<3?wxForecastHTML()+'<p style="font-size:13px;margin-top:0">'+tr('next_wx',wxText(c.wx[n]))+'</p>':'')+tableHTML(rows);}
+  else if(m==='kisaTulos'){const rc=SER.races[SER.races.length-1],rows=rc.order.map((n,i)=>({n,b:rc.res[i],me:n===ME})),pos=rc.order.indexOf(ME)+1;
+    ovT.textContent=(pos===1?tr('won_race'):pos<=3?tr('podium',ord(pos)):tr('placed',ord(pos)));
+    ovB.textContent=SER.race<serTracks().length-1?tr('next_race'):tr('series_results');
+    ovP.innerHTML='<p>'+tr('race_line',trackName(TRACKS.find(q=>q.id===rc.track)),CLASSES[SER.ci].nimi,SER.race+1,serTracks().length)+'</p>'+tableHTML(rows,{gain:1})+'<p class="pieni">'+tr('champ_table')+'</p>'+tableHTML(standings(),{pts:1});}
+  else if(m==='sarjaTulos'){const pos=myPos(),last=SER.ci>=CLASSES.length-1,up=last?pos===1:pos<=3,st=standings();
+    ovT.textContent=last?(pos===1?tr('champion'):pos<=3?tr('champ_pos',ord(pos)):tr('series_over',ord(pos))):(up?tr('promoted',CLASSES[SER.ci+1].nimi):tr('series_over',ord(pos)));
+    ovB.textContent=up?(last?tr('new_season'):tr('start_class',CLASSES[SER.ci+1].nimi)):tr('retry_class',CLASSES[SER.ci].nimi);
+    let note='';if(!up)note=last?tr('need_title',st[0].p-st[pos-1].p+1):tr('need_top3',st[2].p-st[pos-1].p+1);
+    ovP.innerHTML=ladderHTML()+'<p>'+tr('final_of',CLASSES[SER.ci].nimi)+note+'</p>'+tableHTML(st,{pts:1});}
+}
+function startRun(){ov.classList.add('piilo');ptr.clear();leftP=rightP=null;
+  REC=[];recT=0;
+  SKIN=null;
+  if(mode==='sarja'){setWx(curWx());setupFlag();}
+  else if(mode==='kaveri'){setWx(FR.wx[FR.round]);SKIN=FR.players[FR.idx].skin;const lb=frRows()[0].b;bestObj.on=!!lb&&lb.t==null;bestObj.label='flag_lead';if(lb)bestObj.x=-sOfArc(Math.min(LEN,lb.d));}
+  else{setWx(nextWX);bestObj.on=paras>0;bestObj.label='flag_best';bestObj.x=-sOfArc(Math.min(LEN,paras));}
+  bestObj.z=H(bestObj.x,bestObj.y);
+  unlockAudio();reset();state='play';SND.crashed=false;sfx.start();}
+function startSeriesRun(){mode='sarja';const c=CLASSES[SER.ci],t=TRACKS.find(q=>q.id===SER.cur.track);
+  if(BK!==c)setBike(c);if(T!==t)setTrack(t);startRun();}
+function rollPracticeWx(){nextWX=wxChoice==='vaihtuva'?pickW(WX_NEXT[WXK]||WX_START,Math.random):wxChoice;}
+function ovAction(){
+  if(ovMode==='menu'){
+    if(menuTab==='harjoitus'){mode='harjoitus';startRun();return;}
+    if(menuTab==='kaveri'){frStart();return;}
+    if(!SER){newSeries(0);showOv('menu');return;}
+    if(SER.phase==='raceDone'){showOv('kisaTulos');return;}
+    if(SER.phase==='seriesDone'){showOv('sarjaTulos');return;}
+    startSeriesTurn();return;}
+  if(ovMode==='end'){mode='harjoitus';startRun();return;}
+  if(ovMode==='kaveriVuoro'){startFriendRun();return;}
+  if(ovMode==='kaveriYritys'){if(FR.done)showOv('kaveriTulos');else startFriendRun();return;}
+  if(ovMode==='kaveriTulos'){frStart();return;}
+  if(ovMode==='sarjaYritys'){if(SER.phase==='raceDone')showOv('kisaTulos');else startSeriesTurn();return;}
+  if(ovMode==='kisaTulos'){nextRace();return;}
+  if(ovMode==='sarjaTulos'){const pos=myPos(),last=SER.ci>=CLASSES.length-1;newSeries(last?(pos===1?0:SER.ci):(pos<=3?SER.ci+1:SER.ci));showOv('menu');return;}
+}
+ovB.addEventListener('click',ovAction);
+ovB2.addEventListener('click',()=>{state='menu';if(ovMode==='end')menuTab='harjoitus';showOv('menu');});
+document.getElementById('zoom').addEventListener('click',()=>{unlockAudio();zi=(zi+1)%ZL.length;});
+document.getElementById('aani').addEventListener('click',()=>{unlockAudio();setMute(!SND.on);});
+setMute(SND.on);
+document.getElementById('alusta').addEventListener('click',()=>{if(state==='menu')return;
+  if(state==='watch'){finishWatch(false);state='menu';showOv('menu');return;}
+  if(state==='play'&&mode==='sarja'&&ajossa){endRun('m_abort',false);return;}
+  if(mode==='kaveri'&&FR&&!FR.done&&state==='play'){if(ajossa){endRun('m_abort',false);return;}state='menu';showOv('kaveriVuoro');return;}
+  state='menu';showOv('menu');});
+['zoom','alusta','aani'].forEach(id=>document.getElementById(id).addEventListener('pointerdown',e=>e.stopPropagation()));
+
+/* ================= silmukka ================= */
+BK=CLASSES.find(c=>c.id===lsGet('mkLuokka'))||CLASSES[1];L=BK.L;HC=BK.hc;
+setTrack(TRACKS.find(t=>t.id===lsGet('mkRata'))||TRACKS[0]);reset();showOv('menu');
+window.__T={zoomTest:z=>{ZL[2]=z;zi=2;},get W(){return W;},arc:()=>arcOf(maxS),get st(){return state;},newSer:ci=>{newSeries(ci);},end:d=>{maxS=sOfArc(d);ajossa=true;endRun('Testi',false);},get ser(){return SER;},setBike:id=>setBike(CLASSES.find(c=>c.id===id)),sim:(o)=>{ // testaus: aja fysiikkaa ilman piirtoa
+    if(o.bike)setBike(CLASSES.find(c=>c.id===o.bike));
+    setTrack(TRACKS.find(t=>t.id===(o.track||'niitty')));reset();state='play';ajossa=false;
+    if(o.arc!=null){B.x=-sOfArc(o.arc);B.y=0;if(typeof initGround==='function')initGround();else{B.z=B.hr=H(B.x,B.y);B.alpha=groundAlpha(B.x,B.y,B.th,1);}}
+    if(o.v)B.v=o.v;
+    const tr={maxPhi:0,air:0,slipT:0,end:null,v0:B.v,arc0:arcOf(-B.x),thuds:0};
+    for(let i=0;i<(o.n||360);i++){const c=o.ctrl(i/120,B);inp.thr=c[0];inp.fb=c[1];inp.lr=c[2]||0;inp.brk=c[3]||0;
+      step(1/120);if(o.trace&&i%o.trace===0)(tr.log=tr.log||[]).push([arcOf(-B.x).toFixed(1),B.v.toFixed(1),B.phi.toFixed(2),B.air?1:0,(B.z-B.hr).toFixed(2),(B.air?B.pa:B.alpha).toFixed(2),B.om.toFixed(2)]);tr.maxPhi=Math.max(tr.maxPhi,B.phi);if(B.air)tr.air+=1/120;if(B.slip>0)tr.slipT+=1/120;
+      if(state!=='play'){tr.end=endMsg;break;}}
+    tr.v=B.v;tr.arc=arcOf(-B.x);tr.phi=B.phi;state='menu';ov.classList.add('piilo');return tr;},dbg:()=>[-30,-10,0,10,30,60,100,150,200,230].map(s=>[s,Hs(s,0).toFixed(1),arcOf(s).toFixed(1),gradeAt(s).toFixed(2)]).concat([[FINISH,LEN,HALFW]]),setTrack:id=>{setTrack(TRACKS.find(t=>t.id===id));},SND,B,inp,get state(){return state;},get maxS(){return maxS;},start:ovAction};
+let last=performance.now(),acc=0;
+function frame(t){
+  const dt=Math.min(.05,(t-last)/1000);last=t;
+  updInp();
+  if(state==='play'){acc+=dt;if(ajossa)aika+=dt;while(acc>=1/120){step(1/120);acc-=1/120;if(state!=='play'){acc=0;break;}}if(state==='play'&&mode==='sarja')recordFrame(dt);}
+  else if(state==='watch'&&W.phase!=='done'){
+    if(W.kind==='replay')replayStep(dt);
+    else{W.t+=dt;acc+=dt;if(ajossa)aika+=dt;while(acc>=1/120){autopilot();step(1/120);puppetAssist(1/120);acc-=1/120;if(state!=='watch'||W.phase==='done'){acc=0;break;}}}}
+  for(let i=parts.length-1;i>=0;i--){const q=parts[i];q.life-=dt;if(q.life<=0){parts.splice(i,1);continue;}q.x+=q.vx*dt;q.y+=q.vy*dt;q.z+=q.vz*dt;q.vz-=(q.g||3)*dt;if(q.clod&&q.vz<0&&q.z<H(q.x,q.y))q.life=0;}
+  audioUpdate(dt);updCam(dt);render();requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
